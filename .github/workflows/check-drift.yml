@@ -1,0 +1,25 @@
+name: Check Hexagon drift
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare against canonical webapp-frontend
+        run: |
+          RAW="https://raw.githubusercontent.com/cheffer0723/webapp-frontend/main"
+          fail=0
+          for f in Hexagon.tsx sample.ts; do
+            curl -fsSL "$RAW/src/components/hexagon/$f" -o "/tmp/$f"
+            if ! diff -q "/tmp/$f" "src/components/hexagon/$f" >/dev/null; then
+              echo "::error::src/components/hexagon/$f has drifted from webapp-frontend. Run scripts/sync-hexagon.sh."
+              fail=1
+            fi
+          done
+          exit $fail
