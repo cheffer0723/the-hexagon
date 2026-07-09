@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: "20"
       - run: npm install
-      # For a PROJECT page (user.github.io/the-hexagon), uncomment:
+      - run: npm run build
       # env:
       #   BASE_PATH: /the-hexagon/
       - run: npm run build
