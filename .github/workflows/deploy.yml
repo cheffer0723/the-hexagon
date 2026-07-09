@@ -1,3 +1,4 @@
+@'
 name: Deploy The Hexagon to GitHub Pages
 
 on:
@@ -24,9 +25,14 @@ jobs:
           node-version: "20"
       - run: npm install
       - run: npm run build
+<<<<<<< HEAD
               env:
                 BASE_PATH: /the-hexagon/
       - run: npm run build
+=======
+        env:
+          BASE_PATH: /the-hexagon/
+>>>>>>> 956cb6f9490affed3892f08d163f1440c99206a9
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
@@ -40,3 +46,4 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+'@ | Set-Content -Path .github\workflows\deploy.yml -Encoding utf8
