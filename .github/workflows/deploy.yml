@@ -24,8 +24,8 @@ jobs:
           node-version: "20"
       - run: npm install
       - run: npm run build
-      # env:
-      #   BASE_PATH: /the-hexagon/
+              env:
+                BASE_PATH: /the-hexagon/
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
