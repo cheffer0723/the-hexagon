@@ -29,12 +29,12 @@ const MAX_BYTES = 1_000_000;
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 
 const ROLES: Agent[] = [
-  { id: "risk_manager", name: "Risk Manager", lens: "position sizing, stop discipline, and whether the exit was a defined rule or a discretionary flinch" },
-  { id: "quant", name: "Quant", lens: "the size of the move, the available signals, and whether the data justified an action" },
-  { id: "behavioral", name: "Behavioral Psych", lens: "emotional patterns such as panic, FOMO, greed, or revenge trading" },
-  { id: "contrarian", name: "Contrarian", lens: "crowd positioning and whether the trader followed the herd or had a genuine edge" },
-  { id: "regime", name: "Regime Analyst", lens: "the Orthrus, Hydra, and Sisyphus signals and whether the decision fought or followed them" },
-  { id: "devils_advocate", name: "Devil's Advocate", lens: "the strongest honest defense of the trade, including constraints not present in the CSV" },
+  { id: "risk_manager", name: "Mara Voss — Risk", lens: "position sizing, stop discipline, and whether the exit was a defined rule or a discretionary flinch" },
+  { id: "quant", name: "Elias Kent — Quant", lens: "the size of the move, the available signals, and whether the data justified an action" },
+  { id: "behavioral", name: "Dr. Naomi Reed — Behavioral", lens: "emotional patterns such as panic, FOMO, greed, or revenge trading" },
+  { id: "contrarian", name: "Victor Hale — Contrarian", lens: "crowd positioning and whether the trader followed the herd or had a genuine edge" },
+  { id: "regime", name: "Cora Vale — Regime", lens: "the Orthrus, Hydra, and Sisyphus signals and whether the decision fought or followed them" },
+  { id: "devils_advocate", name: "Julian Cross — Defense", lens: "the strongest honest defense of the trade, including constraints not present in the CSV" },
 ];
 
 const app = express();

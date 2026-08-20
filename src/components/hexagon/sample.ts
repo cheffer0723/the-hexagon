@@ -47,7 +47,7 @@ export const SAMPLE: HexagonReview = {
   agents: [
     {
       id: "risk_manager",
-      name: "Risk Manager",
+      name: "Mara Voss — Risk",
       verdict: "mistake",
       text: "No stop defined at entry - a discretionary bail at a -1.3% dip, inside normal SPY noise. The undefined exit turned a wiggle into a realized loss.",
       thinking:
@@ -55,7 +55,7 @@ export const SAMPLE: HexagonReview = {
     },
     {
       id: "quant",
-      name: "Quant",
+      name: "Elias Kent — Quant",
       verdict: "mistake",
       text: "~0.4 ATR of movement. Statistically indistinguishable from noise. Nothing in the data said sell.",
       thinking:
@@ -63,7 +63,7 @@ export const SAMPLE: HexagonReview = {
     },
     {
       id: "behavioral",
-      name: "Behavioral Psych",
+      name: "Dr. Naomi Reed — Behavioral",
       verdict: "mistake",
       text: "Textbook discomfort exit - a shallow drawdown, a short hold, no new information. The exit tracked price pain, not a plan.",
       thinking:
@@ -71,7 +71,7 @@ export const SAMPLE: HexagonReview = {
     },
     {
       id: "contrarian",
-      name: "Contrarian",
+      name: "Victor Hale — Contrarian",
       verdict: "mistake",
       text: "Sold the day before it stopped falling. Fading a 3-day index dip is flinching with the crowd, not an edge.",
       thinking:
@@ -79,7 +79,7 @@ export const SAMPLE: HexagonReview = {
     },
     {
       id: "regime",
-      name: "Regime Analyst",
+      name: "Cora Vale — Regime",
       verdict: "mistake",
       text: "Risk-on uptrend the entire window - SPY above its 200-day, no macro-stress flip. The model stayed IN. The exit fought the regime.",
       thinking:
@@ -87,7 +87,7 @@ export const SAMPLE: HexagonReview = {
     },
     {
       id: "devils_advocate",
-      name: "Devil's Advocate",
+      name: "Julian Cross — Defense",
       verdict: "defensible",
       text: "In your defense - if that was rent money or you were over-leveraged elsewhere, cutting fast is rational. Preservation beats being right.",
       thinking:

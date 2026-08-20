@@ -87,7 +87,7 @@ type SeatState = "idle" | "active" | "resolved";
 
 function formatMoney(n: number) { return `${n < 0 ? "-" : "+"}$${Math.abs(n).toFixed(0)}`; }
 function formatMoneyPlain(n: number) { return `${n < 0 ? "-" : ""}$${Math.abs(n).toFixed(0)}`; }
-function agentDisplayName(name: string) { return /agent$/i.test(name.trim()) ? name : `${name} Agent`; }
+function agentDisplayName(name: string) { return name; }
 
 interface Particle { x:number; y:number; vx:number; vy:number; r:number; opacity:number; life:number; maxLife:number; }
 
