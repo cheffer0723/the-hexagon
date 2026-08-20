@@ -26,6 +26,7 @@ jobs:
       - run: npm run build
         env:
           BASE_PATH: /the-hexagon/
+          VITE_HEXAGON_API_BASE_URL: ${{ vars.HEXAGON_API_BASE_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -1,12 +1,10 @@
 # The Hexagon
 
-Standalone microsite for **The Hexagon** — an AI "war-room" trade-review council.
-A trade is fed in and six specialist agents (Risk, Quant, Behavioral, Contrarian,
-Regime, Devil's Advocate) deliberate on-screen and deliver a verdict: mistake or
-defensible, with the gap between what you did and what the council would have done.
-
-Extracted verbatim from the source-of-truth component in `webapp-frontend`.
-Single component, no backend required to run the demo.
+Standalone product for **The Hexagon** — an AI "war-room" trade-review council.
+The visitor uploads a completed-trades CSV; six independent OpenAI reviewer roles
+(Risk, Quant, Behavioral, Contrarian, Regime, Devil's Advocate) deliberate
+on-screen and return a forensic verdict. The product is separate from Obsidian
+Abyss; it consumes configured engine data without exposing a Hexagon route there.
 
 ## Run
 
@@ -17,15 +15,13 @@ npm run build      # -> dist/
 npm run preview
 ```
 
-## Live vs sample
+## Live council
 
-By default the app shows the built-in `SAMPLE` review. To run against a live
-council backend, set an API base URL — the app POSTs demo CSV to
-`${VITE_API_BASE_URL}/hexagon/review` and falls back to the sample if it's
-unavailable:
+The static site does not fall back to a fake live review. Configure the deployed
+Hexagon API URL at build time:
 
 ```bash
-VITE_API_BASE_URL=https://your-api.example.com npm run dev
+VITE_HEXAGON_API_BASE_URL=https://your-api.example.com npm run dev
 ```
 
 ## Deploy (GitHub Pages)
@@ -39,18 +35,25 @@ accordingly. For a root/custom domain, leave `BASE_PATH` unset (defaults to `/`)
 Vite 7 · React 19 · TypeScript 5.9 · Tailwind 4. No router, no UI library —
 the Hexagon renders its own layout with inline styles for color.
 
-## Source of truth & syncing
+## API service
 
-The `Hexagon.tsx` and `sample.ts` files here are **mirrored** from `webapp-frontend`
-(the flagship `/hexagon` route), which is canonical. Do not hand-edit them in this
-repo — edit them in webapp-frontend, then pull the changes here:
+`api/` is the Railway service root for `hexagon-api`. It exposes `GET /healthz`,
+`GET /v1/status`, and `POST /v1/reviews`. It accepts the documented CSV format,
+does not persist uploads, loads engine data from `ENGINE_DATA_URL`, and makes six
+parallel OpenAI Responses API calls using one `OPENAI_API_KEY`.
 
-```bash
-./scripts/sync-hexagon.sh   # curls the latest from webapp-frontend/main
-git diff                    # review, then commit
+Required Railway variables:
+
+```text
+OPENAI_API_KEY=...                 # fresh project key; do not commit it
+ENGINE_DATA_URL=https://.../api/backtests/engines
+CORS_ORIGIN=https://your-frontend-domain
+OPENAI_MODEL=gpt-5-mini            # optional override
 ```
 
-CI (`.github/workflows/check-drift.yml`) fails if these files drift from the
-canonical copy, so the two can't silently diverge. If this microsite and the
-product site ever share three or more pieces, graduate to a shared workspace
-package (`packages/hexagon` imported by both) instead of file mirroring.
+Set Railway's service root directory to `/api`. This repository is now the
+canonical source for the Hexagon experience.
+
+For the GitHub Pages workflow, add the non-secret repository variable
+`HEXAGON_API_BASE_URL` with the public URL of that Railway service before
+deploying the frontend.
