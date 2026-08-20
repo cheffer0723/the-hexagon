@@ -48,7 +48,7 @@ Required Railway variables:
 OPENAI_API_KEY=...                 # fresh project key; do not commit it
 ENGINE_DATA_URL=https://.../api/backtests/engines
 CORS_ORIGIN=https://your-frontend-domain
-OPENAI_MODEL=gpt-5-mini            # optional override
+OPENAI_MODEL=gpt-5-nano            # optional override; cheapest GPT-5 default
 ```
 
 Set Railway's service root directory to `/api`. This repository is now the

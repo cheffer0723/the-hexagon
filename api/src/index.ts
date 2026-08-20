@@ -226,7 +226,7 @@ async function reviewSeat(role: Agent, context: string): Promise<{ id: string; n
     method: "POST",
     headers: { authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "content-type": "application/json" },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || "gpt-5-mini",
+      model: process.env.OPENAI_MODEL || "gpt-5-nano",
       store: false,
       instructions: `You are the ${role.name} seat of The Hexagon, a six-seat post-trade review council. Review through only this lens: ${role.lens}. Be clinical and concise. Never give investment advice or claim facts not supplied. Return JSON that matches the schema.`,
       input: context,
