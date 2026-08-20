@@ -242,9 +242,20 @@ async function reviewSeat(role: Agent, context: string): Promise<{ id: string; n
     });
     throw serviceError("OpenAI could not complete the council review.");
   }
-  const data = await response.json() as { output_text?: unknown };
+  const data = await response.json() as {
+    output_text?: unknown;
+    output?: Array<{ type?: unknown; content?: Array<{ type?: unknown; text?: unknown }> }>;
+  };
+  const outputText = typeof data.output_text === "string"
+    ? data.output_text
+    : (data.output || [])
+      .filter((item) => item.type === "message")
+      .flatMap((item) => item.content || [])
+      .filter((item) => item.type === "output_text" && typeof item.text === "string")
+      .map((item) => item.text as string)
+      .join("");
   let result: { verdict?: unknown; text?: unknown };
-  try { result = JSON.parse(String(data.output_text || "")); } catch { throw serviceError("OpenAI returned an invalid council response."); }
+  try { result = JSON.parse(outputText); } catch { throw serviceError("OpenAI returned an invalid council response."); }
   if ((result.verdict !== "mistake" && result.verdict !== "defensible") || typeof result.text !== "string" || !result.text.trim()) {
     throw serviceError("OpenAI returned an incomplete council response.");
   }
