@@ -233,7 +233,15 @@ async function reviewSeat(role: Agent, context: string): Promise<{ id: string; n
       text: { format: { type: "json_schema", name: "hexagon_seat", strict: true, schema: { type: "object", properties: { verdict: { type: "string", enum: ["mistake", "defensible"] }, text: { type: "string", minLength: 1, maxLength: 500 } }, required: ["verdict", "text"], additionalProperties: false } } },
     }),
   });
-  if (!response.ok) throw serviceError("OpenAI could not complete the council review.");
+  if (!response.ok) {
+    const upstream = await response.json().catch(() => null) as { error?: { code?: unknown; type?: unknown } } | null;
+    console.error("OpenAI Responses API rejected a council seat", {
+      status: response.status,
+      code: typeof upstream?.error?.code === "string" ? upstream.error.code : null,
+      type: typeof upstream?.error?.type === "string" ? upstream.error.type : null,
+    });
+    throw serviceError("OpenAI could not complete the council review.");
+  }
   const data = await response.json() as { output_text?: unknown };
   let result: { verdict?: unknown; text?: unknown };
   try { result = JSON.parse(String(data.output_text || "")); } catch { throw serviceError("OpenAI returned an invalid council response."); }
