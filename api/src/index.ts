@@ -255,12 +255,39 @@ async function reviewSeat(role: Agent, context: string): Promise<{ id: string; n
       .filter((item) => item.type === "output_text" && typeof item.text === "string")
       .map((item) => item.text as string)
       .join("");
-  let result: { verdict?: unknown; text?: unknown };
-  try { result = JSON.parse(outputText); } catch { throw serviceError("OpenAI returned an invalid council response."); }
-  if ((result.verdict !== "mistake" && result.verdict !== "defensible") || typeof result.text !== "string" || !result.text.trim()) {
+  const result = parseSeatResult(outputText);
+  const verdict = typeof result.verdict === "string" ? result.verdict.toLowerCase() : "";
+  if ((verdict !== "mistake" && verdict !== "defensible") || typeof result.text !== "string" || !result.text.trim()) {
+    console.error("OpenAI returned an incomplete council response", {
+      outputCharacters: outputText.length,
+      verdictType: typeof result.verdict,
+      textType: typeof result.text,
+      textCharacters: typeof result.text === "string" ? result.text.length : null,
+    });
     throw serviceError("OpenAI returned an incomplete council response.");
   }
-  return { id: role.id, name: role.name, verdict: result.verdict, text: result.text.trim() };
+  return { id: role.id, name: role.name, verdict: verdict as Verdict, text: result.text.trim() };
+}
+
+function parseSeatResult(outputText: string): { verdict?: unknown; text?: unknown } {
+  const trimmed = outputText.trim();
+  const unwrapped = trimmed
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
+  const candidates = [unwrapped];
+  const objectStart = unwrapped.indexOf("{");
+  const objectEnd = unwrapped.lastIndexOf("}");
+  if (objectStart >= 0 && objectEnd > objectStart) candidates.push(unwrapped.slice(objectStart, objectEnd + 1));
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as { verdict?: unknown; text?: unknown };
+    } catch {
+      // Try the next normalized representation without logging model output or uploaded trade data.
+    }
+  }
+  console.error("OpenAI returned an unparsable council response", { outputCharacters: outputText.length });
+  throw serviceError("OpenAI returned an invalid council response.");
 }
 
 function addDays(date: string, days: number) { const value = new Date(`${date}T00:00:00Z`); value.setUTCDate(value.getUTCDate() + days); return value.toISOString().slice(0, 10); }
