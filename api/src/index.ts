@@ -49,6 +49,7 @@ app.get("/healthz", (_req, res) => {
 app.get("/v1/status", (_req, res) => {
   res.json({
     ok: true,
+    revision: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || null,
     seats: ROLES.length,
     council: ROLES.map(({ id, name }) => ({ id, name })),
     provider: "openai",
