@@ -281,7 +281,8 @@ function parseSeatResult(outputText: string): { verdict?: unknown; text?: unknow
   if (objectStart >= 0 && objectEnd > objectStart) candidates.push(unwrapped.slice(objectStart, objectEnd + 1));
   for (const candidate of candidates) {
     try {
-      const parsed = JSON.parse(candidate);
+      let parsed: unknown = JSON.parse(candidate);
+      if (typeof parsed === "string") parsed = JSON.parse(parsed);
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed as { verdict?: unknown; text?: unknown };
     } catch {
       // Try the next normalized representation without logging model output or uploaded trade data.
