@@ -230,9 +230,9 @@ async function reviewSeat(role: Agent, context: string): Promise<{ id: string; n
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL || "gpt-5-nano",
       store: false,
-      instructions: `You are the ${role.name} seat of The Hexagon, a six-seat post-trade review council. Review through only this lens: ${role.lens}. Be clinical and concise. Never give investment advice or claim facts not supplied. Return JSON that matches the schema.`,
+      instructions: `You are the ${role.name} seat of The Hexagon, a six-seat post-trade review council. Review through only this lens: ${role.lens}. Be clinical and concise. Never give investment advice or claim facts not supplied. Start with exactly one line: VERDICT: mistake or VERDICT: defensible. Follow it with one to three concise sentences of review text.`,
       input: context,
-      text: { format: { type: "json_schema", name: "hexagon_seat", strict: true, schema: { type: "object", properties: { verdict: { type: "string", enum: ["mistake", "defensible"] }, text: { type: "string", minLength: 1, maxLength: 500 } }, required: ["verdict", "text"], additionalProperties: false } } },
+      text: { verbosity: "low" },
     }),
   });
   if (!response.ok) {
@@ -287,6 +287,11 @@ function parseSeatResult(outputText: string): { verdict?: unknown; text?: unknow
     } catch {
       // Try the next normalized representation without logging model output or uploaded trade data.
     }
+  }
+  const verdictMatch = trimmed.match(/^\s*VERDICT\s*:\s*(mistake|defensible)\b\s*/im);
+  if (verdictMatch) {
+    const text = trimmed.slice((verdictMatch.index || 0) + verdictMatch[0].length).trim();
+    return { verdict: verdictMatch[1], text };
   }
   console.error("OpenAI returned an unparsable council response", { outputCharacters: outputText.length });
   throw serviceError("OpenAI returned an invalid council response.");
