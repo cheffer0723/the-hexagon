@@ -1,12 +1,13 @@
 import { ChangeEvent, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
-import type { HexagonReview } from "@/components/hexagon/sample";
+import MobileHexagon from "@/components/hexagon/MobileHexagon";
+import { SAMPLE, type HexagonReview } from "@/components/hexagon/sample";
 
 const API_BASE_URL = (import.meta.env.VITE_HEXAGON_API_BASE_URL || "").replace(/\/+$/, "");
 
 const CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";
 
-function UploadPanel({ onReview }: { onReview: (file: File) => void }) {
+function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => void; onOpenSandbox: () => void }) {
   const [file, setFile] = useState<File | null>(null);
 
   const chooseFile = (event: ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +36,15 @@ function UploadPanel({ onReview }: { onReview: (file: File) => void }) {
           <span className="mt-3 block text-xs" style={{ color: "#8a97a8" }}>Maximum 500 rows / 1 MB</span>
         </label>
 
+        <button
+          type="button"
+          onClick={onOpenSandbox}
+          className="mt-4 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] transition-colors hover:border-[#d4af37] hover:text-[#d4af37]"
+          style={{ borderColor: "#59636d", backgroundColor: "#0a0f14", color: "#d6e3ed" }}
+        >
+          Open local sandbox — no API call
+        </button>
+
         <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#8a97a8" }}>
           <div>
             <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Required columns</p>
@@ -58,6 +68,7 @@ function UploadPanel({ onReview }: { onReview: (file: File) => void }) {
 
 export default function App() {
   const [review, setReview] = useState<HexagonReview | null>(null);
+  const [isSandbox, setIsSandbox] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -83,6 +94,7 @@ export default function App() {
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.review) throw new Error(data?.error || `HTTP ${res.status}`);
       setReview(data.review as HexagonReview);
+      setIsSandbox(false);
     } catch (error) {
       setNotice((error as Error).message || "The council could not review that file.");
     } finally {
@@ -111,7 +123,7 @@ export default function App() {
   if (!review) {
     return (
       <>
-        <UploadPanel onReview={runReview} />
+        <UploadPanel onReview={runReview} onOpenSandbox={() => { setReview(SAMPLE); setIsSandbox(true); setNotice(null); }} />
         {notice && <div className="fixed bottom-5 left-1/2 z-50 w-[min(92vw,620px)] -translate-x-1/2 border px-4 py-3 text-center text-xs" style={{ backgroundColor: "#160b10", borderColor: "#ff5d5d", color: "#ffb0b0" }}>{notice}</div>}
       </>
     );
@@ -119,8 +131,13 @@ export default function App() {
 
   return (
     <>
-      <button onClick={() => { setReview(null); setNotice(null); }} className="fixed left-4 top-4 z-[60] border px-3 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4fd0e0", backgroundColor: "#080c10e6", borderColor: "#1b8da2" }}>Review another CSV</button>
-      <Hexagon review={review} autoPlay={true} />
+      <div className="hidden md:block">
+        <button onClick={() => { setReview(null); setNotice(null); setIsSandbox(false); }} className="fixed left-4 top-4 z-[60] border px-3 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4fd0e0", backgroundColor: "#080c10e6", borderColor: "#1b8da2" }}>Review another CSV</button>
+        <Hexagon review={review} autoPlay={true} />
+      </div>
+      <div className="md:hidden">
+        <MobileHexagon review={review} isSandbox={isSandbox} onExit={() => { setReview(null); setNotice(null); setIsSandbox(false); }} />
+      </div>
     </>
   );
 }
