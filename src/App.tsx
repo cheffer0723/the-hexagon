@@ -1,7 +1,8 @@
 import { ChangeEvent, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
-import { SAMPLE, type HexagonReview } from "@/components/hexagon/sample";
+import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
+import type { HexagonReview } from "@/components/hexagon/sample";
 
 const API_BASE_URL = (import.meta.env.VITE_HEXAGON_API_BASE_URL || "").replace(/\/+$/, "");
 
@@ -68,6 +69,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
 
 export default function App() {
   const [review, setReview] = useState<HexagonReview | null>(null);
+  const [sandboxScenario, setSandboxScenario] = useState<SandboxScenario | null>(null);
   const [isSandbox, setIsSandbox] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -94,6 +96,7 @@ export default function App() {
       const data = await res.json().catch(() => null);
       if (!res.ok || !data?.review) throw new Error(data?.error || `HTTP ${res.status}`);
       setReview(data.review as HexagonReview);
+      setSandboxScenario(null);
       setIsSandbox(false);
     } catch (error) {
       setNotice((error as Error).message || "The council could not review that file.");
@@ -123,7 +126,13 @@ export default function App() {
   if (!review) {
     return (
       <>
-        <UploadPanel onReview={runReview} onOpenSandbox={() => { setReview(SAMPLE); setIsSandbox(true); setNotice(null); }} />
+        <UploadPanel onReview={runReview} onOpenSandbox={() => {
+          const firstScenario = SANDBOX_SCENARIOS[0];
+          setReview(firstScenario.review);
+          setSandboxScenario(firstScenario);
+          setIsSandbox(true);
+          setNotice(null);
+        }} />
         {notice && <div className="fixed bottom-5 left-1/2 z-50 w-[min(92vw,620px)] -translate-x-1/2 border px-4 py-3 text-center text-xs" style={{ backgroundColor: "#160b10", borderColor: "#ff5d5d", color: "#ffb0b0" }}>{notice}</div>}
       </>
     );
@@ -132,11 +141,42 @@ export default function App() {
   return (
     <>
       <div className="hidden md:block">
-        <button onClick={() => { setReview(null); setNotice(null); setIsSandbox(false); }} className="fixed left-4 top-4 z-[60] border px-3 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4fd0e0", backgroundColor: "#080c10e6", borderColor: "#1b8da2" }}>Review another CSV</button>
+        <button onClick={() => { setReview(null); setNotice(null); setSandboxScenario(null); setIsSandbox(false); }} className="fixed left-4 top-4 z-[60] border px-3 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4fd0e0", backgroundColor: "#080c10e6", borderColor: "#1b8da2" }}>Review another CSV</button>
+        {isSandbox && sandboxScenario && (
+          <aside className="fixed right-4 top-4 z-[60] w-64 border p-4" style={{ backgroundColor: "#080c10ee", borderColor: "#1b8da2", boxShadow: "0 0 26px rgba(79,208,224,.14)" }}>
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em]" style={{ color: "#4fd0e0" }}>Local sandbox · no API call</p>
+            <p className="mt-2 text-sm font-bold" style={{ color: "#e8eef5" }}>{sandboxScenario.title}</p>
+            <p className="mt-1 text-[11px] leading-4" style={{ color: "#8a97a8" }}>{sandboxScenario.lesson}</p>
+            <div className="mt-3 grid gap-2">
+              {SANDBOX_SCENARIOS.map((scenario) => (
+                <button
+                  key={scenario.id}
+                  type="button"
+                  onClick={() => { setSandboxScenario(scenario); setReview(scenario.review); }}
+                  className="border px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider"
+                  style={{ borderColor: scenario.id === sandboxScenario.id ? "#d4af37" : "#263542", color: scenario.id === sandboxScenario.id ? "#d4af37" : "#aebac8", backgroundColor: scenario.id === sandboxScenario.id ? "#d4af3712" : "transparent" }}
+                >
+                  {scenario.title}
+                </button>
+              ))}
+            </div>
+            <p className="mt-4 border-t pt-3 text-[10px] leading-4" style={{ borderColor: "#263542", color: "#8a97a8" }}>
+              <span style={{ color: "#4fd0e0" }}>Signal:</span> {sandboxScenario.evidence.signal}
+            </p>
+          </aside>
+        )}
         <Hexagon review={review} autoPlay={true} />
       </div>
       <div className="md:hidden">
-        <MobileHexagon review={review} isSandbox={isSandbox} onExit={() => { setReview(null); setNotice(null); setIsSandbox(false); }} />
+        <MobileHexagon
+          key={sandboxScenario?.id || "live-review"}
+          review={review}
+          isSandbox={isSandbox}
+          scenario={sandboxScenario ?? undefined}
+          scenarios={isSandbox ? SANDBOX_SCENARIOS : undefined}
+          onScenarioChange={(scenario) => { setSandboxScenario(scenario); setReview(scenario.review); }}
+          onExit={() => { setReview(null); setNotice(null); setSandboxScenario(null); setIsSandbox(false); }}
+        />
       </div>
     </>
   );

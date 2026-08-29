@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { SandboxScenario } from "./sandbox";
 import type { HexagonReview } from "./sample";
 
 const COLORS = {
@@ -48,16 +49,43 @@ function VerdictMark({ verdict }: { verdict: "mistake" | "defensible" }) {
 export default function MobileHexagon({
   review,
   isSandbox,
+  scenario,
+  scenarios,
+  onScenarioChange,
   onExit,
 }: {
   review: HexagonReview;
   isSandbox: boolean;
+  scenario?: SandboxScenario;
+  scenarios?: SandboxScenario[];
+  onScenarioChange?: (scenario: SandboxScenario) => void;
   onExit: () => void;
 }) {
   const [selected, setSelected] = useState(0);
+  const [revealed, setRevealed] = useState(review.agents.length);
+  const [replaying, setReplaying] = useState(false);
   const agent = review.agents[selected] ?? review.agents[0];
   const outcomeColor = review.trade.pnl < 0 ? COLORS.red : COLORS.green;
   const summary = useMemo(() => review.verdict.summary.replace(/^Consensus:\s*/i, ""), [review.verdict.summary]);
+
+  useEffect(() => {
+    if (!replaying) return;
+    if (revealed >= review.agents.length) {
+      setReplaying(false);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setSelected(revealed);
+      setRevealed((count) => count + 1);
+    }, 520);
+    return () => window.clearTimeout(timer);
+  }, [replaying, revealed, review.agents.length]);
+
+  const replayCouncil = () => {
+    setSelected(0);
+    setRevealed(0);
+    setReplaying(true);
+  };
 
   return (
     <main className="mobile-hexagon" style={{ background: COLORS.bg, color: COLORS.ink }}>
@@ -70,6 +98,9 @@ export default function MobileHexagon({
         .mobile-hexagon__title { margin: 6px 0 0; font: 800 17px/1 Inter, sans-serif; letter-spacing: .09em; }
         .mobile-hexagon__exit { border: 1px solid #2b5660; color: ${COLORS.cyan}; background: #080c10d9; padding: 8px 10px; font: 700 9px/1 Inter, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
         .mobile-hexagon__sandbox { margin: 14px 2px 0; display: flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid #22727e; color: ${COLORS.cyan}; background: #07161ae6; padding: 10px 12px; font: 700 10px/1.25 Inter, sans-serif; letter-spacing: .08em; text-align: center; }
+        .mobile-hexagon__scenario-nav { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: 9px 2px 0; }
+        .mobile-hexagon__scenario { min-height: 48px; border: 1px solid #263542; background: #090e14; color: ${COLORS.steel}; padding: 7px 5px; font: 800 8px/1.25 Inter, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+        .mobile-hexagon__scenario.is-current { border-color: ${COLORS.gold}; background: #d4af3712; color: ${COLORS.gold}; }
         .mobile-hexagon__trade { display: grid; grid-template-columns: 1.05fr 1.2fr .65fr; gap: 7px; margin: 15px 2px 0; }
         .mobile-hexagon__trade > div { min-width: 0; border-top: 1px solid #263542; padding-top: 7px; }
         .mobile-hexagon__trade span { display: block; color: ${COLORS.steel}; font-size: 8px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
@@ -82,6 +113,7 @@ export default function MobileHexagon({
         .mobile-hexagon__seat::before { content: ""; position: absolute; inset: 4px; border: 1px solid #ffffff12; clip-path: inherit; }
         .mobile-hexagon__seat:hover, .mobile-hexagon__seat:focus-visible { transform: scale(1.04); border-color: ${COLORS.cyan}; outline: none; }
         .mobile-hexagon__seat.is-selected { border-color: ${COLORS.cyan}; box-shadow: 0 0 0 1px #4fd0e033, 0 0 22px #4fd0e044; background: linear-gradient(145deg, #15303a, #080c10 74%); }
+        .mobile-hexagon__seat.is-pending { cursor: default; opacity: .42; filter: grayscale(.35); }
         .mobile-hexagon__seat-label { position: relative; z-index: 1; max-width: 100%; color: ${COLORS.ink}; font-size: clamp(8px, 2.45vw, 10px); font-weight: 800; letter-spacing: .1em; text-align: center; }
         .mobile-hexagon__seat-state { position: relative; z-index: 1; width: 6px; height: 6px; border-radius: 50%; box-shadow: 0 0 9px currentColor; }
         .top-seat { top: 0; left: 50%; transform: translateX(-50%); }
@@ -100,6 +132,12 @@ export default function MobileHexagon({
         .mobile-hexagon__briefing { position: relative; margin: 8px 2px 0; border: 1px solid #263542; background: #0b1118d9; padding: 14px; }
         .mobile-hexagon__briefing-header { display: flex; align-items: center; gap: 8px; color: ${COLORS.steel}; font-size: 9px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
         .mobile-hexagon__briefing p { margin: 9px 0 0; color: #c1ccd7; font-size: 12px; line-height: 1.55; }
+        .mobile-hexagon__replay { margin-left: auto; border: 1px solid #2b5660; background: transparent; color: ${COLORS.cyan}; padding: 6px 8px; font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+        .mobile-hexagon__evidence { margin: 9px 2px 0; border-left: 2px solid ${COLORS.gold}; background: #0a0f14; padding: 12px 13px; }
+        .mobile-hexagon__evidence h2 { margin: 0; color: ${COLORS.gold}; font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+        .mobile-hexagon__timeline { display: grid; gap: 5px; margin: 9px 0; padding: 0; list-style: none; color: #c1ccd7; font-size: 11px; line-height: 1.35; }
+        .mobile-hexagon__evidence p { margin: 8px 0 0; color: ${COLORS.steel}; font-size: 11px; line-height: 1.45; }
+        .mobile-hexagon__evidence strong { color: ${COLORS.cyan}; font-weight: 800; }
         .mobile-hexagon__pattern { margin: 11px 2px 0; color: ${COLORS.gold}; font-size: 10px; font-weight: 700; line-height: 1.5; letter-spacing: .04em; text-align: center; }
         @media (max-width: 355px) { .mobile-hexagon__shell { padding-left: 9px; padding-right: 9px; } .mobile-hexagon__stage { height: 370px; } .mobile-hexagon__seat { width: 82px; height: 72px; } }
         @media (prefers-reduced-motion: no-preference) { .mobile-hexagon__core { animation: core-breathe 3.2s ease-in-out infinite; } .mobile-hexagon__pulse { animation: signal-pulse 1.65s ease-in-out infinite alternate; } @keyframes core-breathe { 50% { filter: drop-shadow(0 0 20px #4fd0e080); } } @keyframes signal-pulse { to { opacity: .45; transform: scale(.82); } } }
@@ -114,7 +152,20 @@ export default function MobileHexagon({
           <button type="button" onClick={onExit} className="mobile-hexagon__exit">Exit</button>
         </header>
 
-        {isSandbox && <div className="mobile-hexagon__sandbox">LOCAL SANDBOX · SAMPLE REVIEW · NO API CALL</div>}
+        {isSandbox && (
+          <>
+            <div className="mobile-hexagon__sandbox">LOCAL SANDBOX · ILLUSTRATIVE SAMPLE · NO API CALL</div>
+            {scenario && scenarios && onScenarioChange && (
+              <nav className="mobile-hexagon__scenario-nav" aria-label="Sandbox scenarios">
+                {scenarios.map((option) => (
+                  <button key={option.id} type="button" onClick={() => onScenarioChange(option)} className={`mobile-hexagon__scenario${option.id === scenario.id ? " is-current" : ""}`}>
+                    {option.title}
+                  </button>
+                ))}
+              </nav>
+            )}
+          </>
+        )}
 
         <section className="mobile-hexagon__trade" aria-label="Trade summary">
           <div><span>Trade</span><strong>{review.trade.symbol} · ×{review.trade.size}</strong></div>
@@ -131,32 +182,45 @@ export default function MobileHexagon({
 
           {review.agents.map((seat, index) => {
             const active = index === selected;
+            const isRevealed = index < revealed;
             const color = seat.verdict === "mistake" ? COLORS.red : COLORS.green;
             return (
               <button
                 key={seat.id}
                 type="button"
-                aria-pressed={active}
-                onClick={() => setSelected(index)}
-                className={`mobile-hexagon__seat ${SEAT_POSITIONS[index] || "top-seat"}${active ? " is-selected" : ""}`}
+                aria-pressed={active && isRevealed}
+                aria-disabled={!isRevealed}
+                onClick={() => { if (isRevealed) setSelected(index); }}
+                className={`mobile-hexagon__seat ${SEAT_POSITIONS[index] || "top-seat"}${active && isRevealed ? " is-selected" : ""}${isRevealed ? "" : " is-pending"}`}
               >
                 <span className="mobile-hexagon__seat-state" style={{ color, backgroundColor: color }} />
-                <span className="mobile-hexagon__seat-label">{seatLabel(seat)}</span>
+                <span className="mobile-hexagon__seat-label">{isRevealed ? seatLabel(seat) : "STANDBY"}</span>
               </button>
             );
           })}
 
           <div className="mobile-hexagon__core" aria-label={`Forensic verdict: ${review.verdict.decision}`}>
             <span className="mobile-hexagon__core-label">Forensic verdict</span>
-            <strong className="mobile-hexagon__decision">{review.verdict.decision}</strong>
+            <strong className="mobile-hexagon__decision">{replaying ? "CONVENE" : review.verdict.decision}</strong>
             <span className="mobile-hexagon__consensus">{review.verdict.consensusMistake} mistake · {review.verdict.consensusDefensible} defense</span>
           </div>
         </section>
 
         <section className="mobile-hexagon__briefing" aria-live="polite">
-          <div className="mobile-hexagon__briefing-header"><VerdictMark verdict={agent.verdict} /> {seatLabel(agent)} · {agent.verdict}</div>
+          <div className="mobile-hexagon__briefing-header">
+            <VerdictMark verdict={agent.verdict} /> {seatLabel(agent)} · {agent.verdict}
+            {isSandbox && <button type="button" onClick={replayCouncil} className="mobile-hexagon__replay">{replaying ? "Convene" : "Replay council"}</button>}
+          </div>
           <p>{agent.text}</p>
         </section>
+        {scenario && (
+          <section className="mobile-hexagon__evidence" aria-label="Scenario evidence">
+            <h2>Evidence file · illustrative</h2>
+            <ul className="mobile-hexagon__timeline">{scenario.evidence.timeline.map((event) => <li key={event}>{event}</li>)}</ul>
+            <p><strong>Signal:</strong> {scenario.evidence.signal}</p>
+            <p><strong>Counterfactual:</strong> {scenario.evidence.counterfactual}</p>
+          </section>
+        )}
         <p className="mobile-hexagon__pattern">{summary}</p>
       </section>
     </main>
