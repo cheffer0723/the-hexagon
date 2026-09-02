@@ -88,7 +88,7 @@ export default function TeaserScene() {
             <path d="M7 0.8 L13.2 4.4 V11.6 L7 15.2 L0.8 11.6 V4.4 Z" stroke={`${COLORS.cyan}88`} strokeWidth="1" />
           </svg>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, letterSpacing: "0.35em", color: `${COLORS.steel}cc`, textTransform: "uppercase", whiteSpace: "nowrap" }}>
-            Obsidian&nbsp;Abyss&nbsp;//&nbsp;Deliberation&nbsp;Chamber
+            Deliberation&nbsp;Chamber
           </span>
           <svg width="10" height="12" viewBox="0 0 14 16" fill="none">
             <path d="M7 0.8 L13.2 4.4 V11.6 L7 15.2 L0.8 11.6 V4.4 Z" stroke={`${COLORS.cyan}88`} strokeWidth="1" />

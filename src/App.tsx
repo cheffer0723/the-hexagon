@@ -74,7 +74,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
         </div>
 
         <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
-          <div>
+          <div className="order-2 lg:order-1">
             <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
               Six perspectives. One forensic verdict.
             </p>
@@ -137,7 +137,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
             </div>
           </div>
 
-          <div className="relative h-[300px] overflow-hidden border sm:h-[380px] lg:h-[480px]" style={{ borderColor: "#2a2c2f", backgroundColor: "#07090d" }}>
+          <div className="order-1 relative h-[300px] overflow-hidden border sm:h-[380px] lg:order-2 lg:h-[480px]" style={{ borderColor: "#2a2c2f", backgroundColor: "#07090d" }}>
             <TeaserScene />
           </div>
         </div>
