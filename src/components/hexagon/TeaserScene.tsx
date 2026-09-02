@@ -22,6 +22,26 @@ const TOP_PATH = HEX_TOP.map((pt, i) => `${i === 0 ? "M" : "L"} ${pt[0]} ${pt[1]
 const FRONT_IDX = [0, 5, 4, 3];
 const BACK_IDX = [1, 2];
 
+// A minimal wireframe chair — back rail + seat bar + two legs — parked
+// just outside each table vertex, facing the center.
+const CHAIRS = HEX_TOP.map(([x, y], i) => {
+  const dx = x - TBL.cx, dy = y - TBL.cy;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len;
+  const ax = x + ux * 8, ay = y + uy * 8;
+  const half = 2.6;
+  const backTopY = ay - 4.5;
+  const seatY = ay + 0.5;
+  const legBottomY = HEX_BOT[i][1] + TBL.leg * 0.85;
+  return {
+    key: `chair${i}`,
+    back: `M ${ax - half} ${seatY} L ${ax - half} ${backTopY} L ${ax + half} ${backTopY} L ${ax + half} ${seatY}`,
+    seat: `M ${ax - half * 1.35} ${seatY} L ${ax + half * 1.35} ${seatY}`,
+    legL: `M ${ax - half} ${seatY} L ${ax - half * 0.7} ${legBottomY}`,
+    legR: `M ${ax + half} ${seatY} L ${ax + half * 0.7} ${legBottomY}`,
+  };
+});
+
 export default function TeaserScene() {
   const uid = useId().replace(/[:]/g, "");
 
@@ -99,9 +119,9 @@ export default function TeaserScene() {
         <span
           style={{
             fontFamily: "'Inter', sans-serif", fontWeight: 800,
-            fontSize: "clamp(22px, 6cqw, 34px)", lineHeight: 1,
+            fontSize: "clamp(24px, 6.6cqw, 38px)", lineHeight: 1,
             letterSpacing: "0.32em", textIndent: "0.32em",
-            color: "transparent", WebkitTextStroke: `1.1px ${COLORS.cyan}66`,
+            color: "transparent", WebkitTextStroke: `1.6px ${COLORS.cyan}99`,
           }}
         >
           THE&nbsp;HEXAGON
@@ -118,36 +138,45 @@ export default function TeaserScene() {
       </div>
 
       {/* Hex table stage, idle */}
-      <div className="absolute left-1/2" style={{ top: "42%", width: "min(60%, 260px)", transform: "translateX(-50%)", aspectRatio: "1 / 1" }}>
+      <div className="absolute left-1/2" style={{ top: "40%", width: "min(80%, 360px)", transform: "translateX(-50%)", aspectRatio: "1 / 1" }}>
         <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
+          {CHAIRS.map((c) => (
+            <g key={c.key} opacity="0.5">
+              <path d={c.back} fill="none" stroke={COLORS.cyan} strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" />
+              <path d={c.seat} fill="none" stroke={COLORS.cyan} strokeWidth="1" strokeLinecap="round" />
+              <path d={c.legL} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinecap="round" />
+              <path d={c.legR} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinecap="round" />
+            </g>
+          ))}
+
           {FRONT_IDX.map((i) => (
-            <line key={`leg${i}`} x1={HEX_BOT[i][0]} y1={HEX_BOT[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1] + TBL.leg} stroke={COLORS.cyan} strokeWidth="1.4" strokeLinecap="round" opacity="0.18" />
+            <line key={`leg${i}`} x1={HEX_BOT[i][0]} y1={HEX_BOT[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1] + TBL.leg} stroke={COLORS.cyan} strokeWidth="2" strokeLinecap="round" opacity="0.32" />
           ))}
           {BACK_IDX.map((i) => (
-            <line key={`bstrut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="0.4" opacity="0.12" strokeLinecap="round" />
+            <line key={`bstrut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="0.55" opacity="0.2" strokeLinecap="round" />
           ))}
           {FRONT_IDX.map((i) => (
-            <line key={`strut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="1.0" strokeLinecap="round" opacity="0.3" />
+            <line key={`strut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="1.6" strokeLinecap="round" opacity="0.5" />
           ))}
-          <path d={TOP_PATH} fill="rgba(79,208,224,0.035)" stroke="none" />
+          <path d={TOP_PATH} fill="rgba(79,208,224,0.07)" stroke="none" />
           {HEX_TOP.map(([x, y], i) => (
-            <line key={`spoke${i}`} x1={TBL.cx} y1={TBL.cy} x2={x} y2={y} stroke={COLORS.cyan} strokeWidth="0.3" opacity="0.16" />
+            <line key={`spoke${i}`} x1={TBL.cx} y1={TBL.cy} x2={x} y2={y} stroke={COLORS.cyan} strokeWidth="0.45" opacity="0.24" />
           ))}
-          <path d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinejoin="round" opacity="0.55" />
+          <path d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.4" strokeLinejoin="round" opacity="0.78" />
           <path
-            d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.1" strokeLinejoin="round" strokeLinecap="round"
+            d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round"
             className={`tztrace${uid}`}
-            style={{ strokeDasharray: "26 194", opacity: 0.6 }}
+            style={{ strokeDasharray: "26 194", opacity: 0.75 }}
           />
           {HEX_TOP.map(([x, y], i) => (
-            <path key={`seat${i}`} d={`M ${x} ${y - 1.8} L ${x + 1.8} ${y} L ${x} ${y + 1.8} L ${x - 1.8} ${y} Z`} fill={COLORS.border} />
+            <path key={`seat${i}`} d={`M ${x} ${y - 2.4} L ${x + 2.4} ${y} L ${x} ${y + 2.4} L ${x - 2.4} ${y} Z`} fill={`${COLORS.cyan}66`} stroke={COLORS.cyan} strokeWidth="0.4" />
           ))}
         </svg>
 
         <div className="absolute flex flex-col items-center text-center" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)" }}>
           <div
-            className={`text-[8px] font-semibold uppercase tracking-[0.3em] tzglow${uid}`}
-            style={{ color: COLORS.cyan, opacity: 0.85 }}
+            className={`text-[9px] font-bold uppercase tracking-[0.3em] tzglow${uid}`}
+            style={{ color: COLORS.cyan, opacity: 0.95 }}
           >
             Six seats · standing by
           </div>

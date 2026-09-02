@@ -137,7 +137,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
             </div>
           </div>
 
-          <div className="order-1 relative h-[300px] overflow-hidden border sm:h-[380px] lg:order-2 lg:h-[480px]" style={{ borderColor: "#2a2c2f", backgroundColor: "#07090d" }}>
+          <div className="order-1 relative h-[340px] overflow-hidden border sm:h-[420px] lg:order-2 lg:h-[560px]" style={{ borderColor: "#2a2c2f", backgroundColor: "#07090d" }}>
             <TeaserScene />
           </div>
         </div>
