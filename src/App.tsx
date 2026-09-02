@@ -2,6 +2,7 @@ import { ChangeEvent, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
 import OrbitDiagram from "@/components/hexagon/OrbitDiagram";
+import TeaserScene from "@/components/hexagon/TeaserScene";
 import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
 import type { HexagonReview } from "@/components/hexagon/sample";
 
@@ -61,7 +62,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
 
       <section
         id="top"
-        className="relative flex flex-col justify-center overflow-hidden"
+        className="relative overflow-hidden"
         style={{ minHeight: "calc(100vh - 82px)", padding: "clamp(60px,10vh,110px) clamp(24px,8vw,128px)" }}
       >
         <div
@@ -72,65 +73,73 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           {API_BASE_URL ? "COUNCIL ONLINE" : "SYSTEM IN FORMATION"}
         </div>
 
-        <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-          Six perspectives. One forensic verdict.
-        </p>
-        <h1
-          className="uppercase"
-          style={{ letterSpacing: "-0.06em", maxWidth: 970, margin: "22px 0 26px", fontSize: "clamp(2.6rem,8vw,7rem)", fontWeight: 900, lineHeight: 0.88 }}
-        >
-          Your trades.
-          <br />
-          <span style={{ color: ACID }}>Under scrutiny.</span>
-        </h1>
-        <p style={{ color: "#a4a5a2", maxWidth: 650, margin: "0 0 36px", fontSize: "clamp(1.05rem,1.5vw,1.3rem)", lineHeight: 1.7 }}>
-          The Hexagon is an AI trade-review council built to challenge every assumption behind your completed trades — without flattery, hindsight theater, or easy answers.
-        </p>
+        <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
+          <div>
+            <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+              Six perspectives. One forensic verdict.
+            </p>
+            <h1
+              className="uppercase"
+              style={{ letterSpacing: "-0.06em", maxWidth: 970, margin: "22px 0 26px", fontSize: "clamp(2.6rem,6.5vw,6rem)", fontWeight: 900, lineHeight: 0.88 }}
+            >
+              Your trades.
+              <br />
+              <span style={{ color: ACID }}>Under scrutiny.</span>
+            </h1>
+            <p style={{ color: "#a4a5a2", maxWidth: 650, margin: "0 0 36px", fontSize: "clamp(1.05rem,1.5vw,1.3rem)", lineHeight: 1.7 }}>
+              The Hexagon is an AI trade-review council built to challenge every assumption behind your completed trades — without flattery, hindsight theater, or easy answers.
+            </p>
 
-        <div style={{ width: "min(100%, 520px)" }}>
-          <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-            Convene the council
-          </p>
-          <label
-            className="mt-3 block cursor-pointer border border-dashed p-8 text-center transition-colors"
-            style={{ borderColor: "#3a3c3f", backgroundColor: "#111315" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; }}
-          >
-            <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
-            <span className="block font-bold uppercase" style={{ color: ACID, fontFamily: MONO, fontSize: "0.78rem", letterSpacing: "0.12em" }}>
-              {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
-            </span>
-            <span className="mt-3 block text-xs" style={{ color: "#85898c" }}>Maximum 500 rows / 1 MB</span>
-          </label>
+            <div style={{ width: "min(100%, 520px)" }}>
+              <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+                Convene the council
+              </p>
+              <label
+                className="mt-3 block cursor-pointer border border-dashed p-8 text-center transition-colors"
+                style={{ borderColor: "#3a3c3f", backgroundColor: "#111315" }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; }}
+              >
+                <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
+                <span className="block font-bold uppercase" style={{ color: ACID, fontFamily: MONO, fontSize: "0.78rem", letterSpacing: "0.12em" }}>
+                  {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
+                </span>
+                <span className="mt-3 block text-xs" style={{ color: "#85898c" }}>Maximum 500 rows / 1 MB</span>
+              </label>
 
-          <button
-            type="button"
-            onClick={onOpenSandbox}
-            className="mt-3 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors"
-            style={{ borderColor: "#3a3c3f", backgroundColor: "transparent", color: "#d8dad6", fontFamily: MONO }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; e.currentTarget.style.color = ACID; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; e.currentTarget.style.color = "#d8dad6"; }}
-          >
-            Open local sandbox — no API call
-          </button>
+              <button
+                type="button"
+                onClick={onOpenSandbox}
+                className="mt-3 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors"
+                style={{ borderColor: "#3a3c3f", backgroundColor: "transparent", color: "#d8dad6", fontFamily: MONO }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; e.currentTarget.style.color = ACID; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; e.currentTarget.style.color = "#d8dad6"; }}
+              >
+                Open local sandbox — no API call
+              </button>
 
-          <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#85898c" }}>
-            <div>
-              <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Required columns</p>
-              <code className="mt-2 block break-all leading-5" style={{ fontFamily: MONO }}>{CSV_HEADERS}</code>
-            </div>
-            <div>
-              <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Privacy & scope</p>
-              <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
+              <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#85898c" }}>
+                <div>
+                  <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Required columns</p>
+                  <code className="mt-2 block break-all leading-5" style={{ fontFamily: MONO }}>{CSV_HEADERS}</code>
+                </div>
+                <div>
+                  <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Privacy & scope</p>
+                  <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
+                </div>
+              </div>
+
+              {!API_BASE_URL && (
+                <p className="mt-7 border-l-2 pl-3 text-xs leading-5" style={{ borderColor: "#ff6b6b", color: "#e39a9a" }}>
+                  The live council is not configured yet. Set <code>VITE_HEXAGON_API_BASE_URL</code> when the Hexagon API service is deployed.
+                </p>
+              )}
             </div>
           </div>
 
-          {!API_BASE_URL && (
-            <p className="mt-7 border-l-2 pl-3 text-xs leading-5" style={{ borderColor: "#ff6b6b", color: "#e39a9a" }}>
-              The live council is not configured yet. Set <code>VITE_HEXAGON_API_BASE_URL</code> when the Hexagon API service is deployed.
-            </p>
-          )}
+          <div className="relative h-[300px] overflow-hidden border sm:h-[380px] lg:h-[480px]" style={{ borderColor: "#2a2c2f", backgroundColor: "#07090d" }}>
+            <TeaserScene />
+          </div>
         </div>
       </section>
 
