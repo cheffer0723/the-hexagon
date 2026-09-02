@@ -2,12 +2,12 @@ const ACID = "#d7ff3f";
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const ROLES = [
-  { n: "01", name: "RISK", cls: "role-1", pos: { top: "2%", left: "50%", transform: "translateX(-50%)" } },
-  { n: "02", name: "QUANT", cls: "role-2", pos: { top: "26%", right: "-7%" } },
-  { n: "03", name: "BEHAVIORAL", cls: "role-3", pos: { bottom: "22%", right: "-9%" } },
-  { n: "04", name: "CONTRARIAN", cls: "role-4", pos: { bottom: "2%", left: "50%", transform: "translateX(-50%)" } },
-  { n: "05", name: "REGIME", cls: "role-5", pos: { bottom: "22%", left: "-5%" } },
-  { n: "06", name: "DEVIL'S ADVOCATE", cls: "role-6", pos: { top: "26%", left: "-10%" } },
+  { n: "01", name: "AEGIS", cls: "role-1", pos: { top: "2%", left: "50%", transform: "translateX(-50%)" } },
+  { n: "02", name: "THE ARCHON", cls: "role-2", pos: { top: "26%", right: "-7%" } },
+  { n: "03", name: "THE PSYOPS AGENT", cls: "role-3", pos: { bottom: "22%", right: "-9%" } },
+  { n: "04", name: "THE HERETIC", cls: "role-4", pos: { bottom: "2%", left: "50%", transform: "translateX(-50%)" } },
+  { n: "05", name: "CERBERUS", cls: "role-5", pos: { bottom: "22%", left: "-5%" } },
+  { n: "06", name: "THE SENTINEL", cls: "role-6", pos: { top: "26%", left: "-10%" } },
 ] as const;
 
 export default function OrbitDiagram() {
