@@ -1,13 +1,17 @@
 import { ChangeEvent, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
-import TeaserScene from "@/components/hexagon/TeaserScene";
+import OrbitDiagram from "@/components/hexagon/OrbitDiagram";
 import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
 import type { HexagonReview } from "@/components/hexagon/sample";
 
 const API_BASE_URL = (import.meta.env.VITE_HEXAGON_API_BASE_URL || "").replace(/\/+$/, "");
 
 const CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";
+
+const ACID = "#d7ff3f";
+const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
+const BODY_FONT = "'Arial Narrow', 'Helvetica Neue', Arial, sans-serif";
 
 const SEATS = [
   { name: "Aegis", role: "Risk", line: "Was there a predefined stop — or did discretion do the deciding?" },
@@ -16,12 +20,6 @@ const SEATS = [
   { name: "The Heretic", role: "Contrarian", line: "Steelmans the exit first, then tells you if it still holds." },
   { name: "Cerberus", role: "Regime Class", line: "Checks the trade against the prevailing trend, not just the tape." },
   { name: "The Sentinel", role: "Defense", line: "Argues the case for you — constraints the other five can't see." },
-] as const;
-
-const STEPS = [
-  { n: "01", title: "Upload", body: "Drop a completed-trades CSV — symbol, entry/exit date, entry/exit price, size." },
-  { n: "02", title: "Deliberate", body: "Six independent OpenAI seats review the most instructive trade in parallel, on-screen." },
-  { n: "03", title: "Verdict", body: "One forensic verdict: consensus, dissent, and what holding instead would have cost." },
 ] as const;
 
 function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => void; onOpenSandbox: () => void }) {
@@ -34,95 +32,171 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
   };
 
   return (
-    <main style={{ backgroundColor: "#07090d", color: "#e8eef5" }}>
-      <div className="px-5 pb-16 pt-12" style={{ background: "radial-gradient(circle at 50% 0%, #102d38 0%, #07090d 46%, #030407 100%)" }}>
-        <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-          <div className="relative h-[340px] overflow-hidden border sm:h-[420px]" style={{ borderColor: "#1b2430", backgroundColor: "#07090d" }}>
-            <TeaserScene />
-          </div>
+    <main style={{ backgroundColor: "#090a0c", color: "#f1efe8", fontFamily: BODY_FONT }}>
+      <style>{`@keyframes hxPulse { 50% { opacity: .5; } }`}</style>
 
-          <section className="w-full border p-7 sm:p-10" style={{ backgroundColor: "#0d1117e6", borderColor: "#1b8da2", boxShadow: "0 0 42px rgba(79,208,224,.16)" }}>
-            <p className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The Hexagon // trade review council</p>
-            <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">SIX PERSPECTIVES. ONE FORENSIC VERDICT.</h1>
-            <p className="mt-3 text-sm font-semibold uppercase tracking-wide" style={{ color: "#d6e3ed" }}>
-              Your trades. <em className="not-italic" style={{ color: "#4fd0e0" }}>Under scrutiny.</em>
-            </p>
-            <p className="mt-4 max-w-xl text-sm leading-6" style={{ color: "#aebac8" }}>
-              The Hexagon is an AI trade-review council built to challenge every assumption behind your completed trades — without flattery, hindsight theater, or easy answers.
-            </p>
+      <nav
+        className="flex items-center justify-between"
+        style={{ height: 82, padding: "0 clamp(24px,5vw,80px)", borderBottom: "1px solid #2a2c2f" }}
+      >
+        <a href="#top" className="flex items-center gap-3" style={{ letterSpacing: "0.16em", fontSize: "0.8rem", fontWeight: 800 }}>
+          <span
+            aria-hidden="true"
+            style={{ background: ACID, width: 25, height: 28, display: "block", clipPath: "polygon(50% 0,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%)" }}
+          />
+          <span>THE HEXAGON</span>
+        </a>
+        <a
+          href="https://github.com/cheffer0723/the-hexagon"
+          target="_blank"
+          rel="noreferrer"
+          className="border uppercase transition-colors"
+          style={{ borderColor: "#3a3c3f", padding: "10px 14px", fontSize: "0.76rem", fontWeight: 700, letterSpacing: "0.1em" }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; e.currentTarget.style.color = ACID; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; e.currentTarget.style.color = ""; }}
+        >
+          View source ↗
+        </a>
+      </nav>
 
-            <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: "#d4af37" }}>Convene the council</p>
-            <label className="mt-3 block cursor-pointer border border-dashed p-8 text-center transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#395262", backgroundColor: "#080c10" }}>
-              <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
-              <span className="block text-xs font-bold uppercase tracking-[0.24em]" style={{ color: "#4fd0e0" }}>
-                {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
-              </span>
-              <span className="mt-3 block text-xs" style={{ color: "#8a97a8" }}>Maximum 500 rows / 1 MB</span>
-            </label>
-
-            <button
-              type="button"
-              onClick={onOpenSandbox}
-              className="mt-4 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] transition-colors hover:border-[#d4af37] hover:text-[#d4af37]"
-              style={{ borderColor: "#59636d", backgroundColor: "#0a0f14", color: "#d6e3ed" }}
-            >
-              Open local sandbox — no API call
-            </button>
-
-            <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#8a97a8" }}>
-              <div>
-                <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Required columns</p>
-                <code className="mt-2 block break-all leading-5">{CSV_HEADERS}</code>
-              </div>
-              <div>
-                <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Privacy & scope</p>
-                <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
-              </div>
-            </div>
-
-            {!API_BASE_URL && (
-              <p className="mt-7 border-l-2 pl-3 text-xs leading-5" style={{ borderColor: "#ff5d5d", color: "#ffb0b0" }}>
-                The live council is not configured yet. Set <code>VITE_HEXAGON_API_BASE_URL</code> when the Hexagon API service is deployed.
-              </p>
-            )}
-          </section>
+      <section
+        id="top"
+        className="relative flex flex-col justify-center overflow-hidden"
+        style={{ minHeight: "calc(100vh - 82px)", padding: "clamp(60px,10vh,110px) clamp(24px,8vw,128px)" }}
+      >
+        <div
+          className="absolute hidden sm:flex items-center"
+          style={{ top: 42, right: "clamp(24px,8vw,128px)", color: "#85898c", fontFamily: MONO, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.14em" }}
+        >
+          <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: ACID, boxShadow: `0 0 14px ${ACID}`, marginRight: 8, animation: "hxPulse 1.8s infinite" }} />
+          {API_BASE_URL ? "COUNCIL ONLINE" : "SYSTEM IN FORMATION"}
         </div>
-      </div>
 
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-16 px-5 pb-16">
-        <section className="w-full">
-          <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>01 // The council</p>
-          <p className="mt-3 text-center text-xl font-black tracking-tight sm:text-2xl">No single model gets the final word.</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            {STEPS.map((step) => (
-              <div key={step.n} className="border p-5 transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
-                <p className="text-2xl font-black" style={{ color: "#d4af37" }}>{step.n}</p>
-                <p className="mt-2 text-sm font-bold uppercase tracking-wider">{step.title}</p>
-                <p className="mt-2 text-xs leading-5" style={{ color: "#8a97a8" }}>{step.body}</p>
-              </div>
-            ))}
+        <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+          Six perspectives. One forensic verdict.
+        </p>
+        <h1
+          className="uppercase"
+          style={{ letterSpacing: "-0.06em", maxWidth: 970, margin: "22px 0 26px", fontSize: "clamp(2.6rem,8vw,7rem)", fontWeight: 900, lineHeight: 0.88 }}
+        >
+          Your trades.
+          <br />
+          <span style={{ color: ACID }}>Under scrutiny.</span>
+        </h1>
+        <p style={{ color: "#a4a5a2", maxWidth: 650, margin: "0 0 36px", fontSize: "clamp(1.05rem,1.5vw,1.3rem)", lineHeight: 1.7 }}>
+          The Hexagon is an AI trade-review council built to challenge every assumption behind your completed trades — without flattery, hindsight theater, or easy answers.
+        </p>
+
+        <div style={{ width: "min(100%, 520px)" }}>
+          <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+            Convene the council
+          </p>
+          <label
+            className="mt-3 block cursor-pointer border border-dashed p-8 text-center transition-colors"
+            style={{ borderColor: "#3a3c3f", backgroundColor: "#111315" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; }}
+          >
+            <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
+            <span className="block font-bold uppercase" style={{ color: ACID, fontFamily: MONO, fontSize: "0.78rem", letterSpacing: "0.12em" }}>
+              {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
+            </span>
+            <span className="mt-3 block text-xs" style={{ color: "#85898c" }}>Maximum 500 rows / 1 MB</span>
+          </label>
+
+          <button
+            type="button"
+            onClick={onOpenSandbox}
+            className="mt-3 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.12em] transition-colors"
+            style={{ borderColor: "#3a3c3f", backgroundColor: "transparent", color: "#d8dad6", fontFamily: MONO }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; e.currentTarget.style.color = ACID; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; e.currentTarget.style.color = "#d8dad6"; }}
+          >
+            Open local sandbox — no API call
+          </button>
+
+          <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#85898c" }}>
+            <div>
+              <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Required columns</p>
+              <code className="mt-2 block break-all leading-5" style={{ fontFamily: MONO }}>{CSV_HEADERS}</code>
+            </div>
+            <div>
+              <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Privacy & scope</p>
+              <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
+            </div>
           </div>
-        </section>
 
-        <section className="w-full">
-          <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The six seats</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {SEATS.map((seat) => (
-              <div key={seat.name} className="border p-5 transition-colors hover:border-[#d4af37]" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
-                <p className="text-sm font-bold" style={{ color: "#e8eef5" }}>
-                  {seat.name} <span style={{ color: "#4fd0e0" }}>— {seat.role}</span>
-                </p>
-                <p className="mt-2 text-xs leading-5" style={{ color: "#8a97a8" }}>{seat.line}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+          {!API_BASE_URL && (
+            <p className="mt-7 border-l-2 pl-3 text-xs leading-5" style={{ borderColor: "#ff6b6b", color: "#e39a9a" }}>
+              The live council is not configured yet. Set <code>VITE_HEXAGON_API_BASE_URL</code> when the Hexagon API service is deployed.
+            </p>
+          )}
+        </div>
+      </section>
 
-        <footer className="w-full border-t pt-6 text-center text-[10px] uppercase tracking-[0.25em]" style={{ borderColor: "#1c2833", color: "#59636d" }}>
-          <p style={{ color: "#d4af37" }}>Built for traders who want the truth.</p>
-          <p className="mt-2">The Hexagon — educational analysis, not investment advice.</p>
-        </footer>
-      </div>
+      <section
+        aria-labelledby="council-title"
+        className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-[7vw]"
+        style={{ borderTop: "1px solid #2a2c2f", background: "#0c0d0f", padding: "80px clamp(24px,8vw,128px)" }}
+      >
+        <div>
+          <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+            01 / The council
+          </p>
+          <h2
+            id="council-title"
+            className="uppercase"
+            style={{ letterSpacing: "-0.04em", margin: "24px 0 30px", fontSize: "clamp(2rem,4.2vw,4rem)", lineHeight: 0.94, fontWeight: 900 }}
+          >
+            No single model
+            <br />
+            gets the final word.
+          </h2>
+          <p style={{ color: "#91938f", maxWidth: 480, fontSize: "1.05rem", lineHeight: 1.7 }}>
+            Upload a completed-trades CSV. Six independent reviewers interrogate the evidence in parallel, then deliberate toward a clear, actionable verdict.
+          </p>
+        </div>
+        <OrbitDiagram />
+      </section>
+
+      <section className="mx-auto max-w-5xl px-5 py-16">
+        <p className="text-center" style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+          The six seats
+        </p>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {SEATS.map((seat) => (
+            <div
+              key={seat.name}
+              className="border p-5 transition-colors"
+              style={{ borderColor: "#2a2c2f", backgroundColor: "#111315" }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2a2c2f"; }}
+            >
+              <p className="text-sm font-bold" style={{ color: "#f1efe8" }}>
+                {seat.name} <span style={{ color: ACID }}>— {seat.role}</span>
+              </p>
+              <p className="mt-2 text-xs leading-5" style={{ color: "#85898c" }}>{seat.line}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <footer
+        className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between"
+        style={{ borderTop: "1px solid #2a2c2f", padding: "50px clamp(24px,8vw,128px)" }}
+      >
+        <div>
+          <p style={{ letterSpacing: "-0.03em", color: ACID, margin: 0, fontSize: "clamp(1.8rem,5vw,4rem)", fontWeight: 900 }}>THE HEXAGON</p>
+          <small style={{ color: "#666b6e", fontFamily: MONO, fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.2em", marginTop: 8, display: "block" }}>
+            INSTANCE6.XYZ
+          </small>
+        </div>
+        <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: "0.68rem", lineHeight: 1.5, letterSpacing: "0.14em", color: "#777b7d", textAlign: "right" }}>
+          BUILT FOR TRADERS WHO WANT THE TRUTH.
+          <br />
+          Educational analysis, not investment advice.
+        </span>
+      </footer>
     </main>
   );
 }
