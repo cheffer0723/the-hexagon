@@ -42,6 +42,11 @@ export default function TeaserScene() {
           from { stroke-dashoffset: 0; }
           to   { stroke-dashoffset: -220; }
         }
+        @media (prefers-reduced-motion: no-preference) {
+          .tzdust${uid}  { animation: teaserDust${uid} var(--dur) ease-in-out var(--delay) infinite; }
+          .tzglow${uid}  { animation: teaserGlow${uid} 2.6s ease-in-out infinite; }
+          .tztrace${uid} { animation: teaserTrace${uid} 5.5s linear infinite; }
+        }
       `}</style>
 
       {/* Blueprint grid backdrop */}
@@ -61,15 +66,17 @@ export default function TeaserScene() {
       {Array.from({ length: 18 }).map((_, i) => (
         <span
           key={i}
-          className="absolute rounded-full"
+          className={`absolute rounded-full tzdust${uid}`}
           style={{
             left: `${(i * 37) % 100}%`,
             top: `${30 + ((i * 53) % 60)}%`,
             width: i % 3 === 0 ? 2 : 1,
             height: i % 3 === 0 ? 2 : 1,
             backgroundColor: COLORS.cyan,
-            animation: `teaserDust${uid} ${6 + (i % 5)}s ease-in-out ${i * 0.4}s infinite`,
-          }}
+            opacity: 0.4,
+            "--dur": `${6 + (i % 5)}s`,
+            "--delay": `${i * 0.4}s`,
+          } as CSSProperties}
         />
       ))}
 
@@ -129,7 +136,8 @@ export default function TeaserScene() {
           <path d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinejoin="round" opacity="0.55" />
           <path
             d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.1" strokeLinejoin="round" strokeLinecap="round"
-            style={{ strokeDasharray: "26 194", animation: `teaserTrace${uid} 5.5s linear infinite`, opacity: 0.6 }}
+            className={`tztrace${uid}`}
+            style={{ strokeDasharray: "26 194", opacity: 0.6 }}
           />
           {HEX_TOP.map(([x, y], i) => (
             <path key={`seat${i}`} d={`M ${x} ${y - 1.8} L ${x + 1.8} ${y} L ${x} ${y + 1.8} L ${x - 1.8} ${y} Z`} fill={COLORS.border} />
@@ -138,8 +146,8 @@ export default function TeaserScene() {
 
         <div className="absolute flex flex-col items-center text-center" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)" }}>
           <div
-            className="text-[8px] font-semibold uppercase tracking-[0.3em]"
-            style={{ color: COLORS.cyan, animation: `teaserGlow${uid} 2.6s ease-in-out infinite` }}
+            className={`text-[8px] font-semibold uppercase tracking-[0.3em] tzglow${uid}`}
+            style={{ color: COLORS.cyan, opacity: 0.85 }}
           >
             Six seats · standing by
           </div>

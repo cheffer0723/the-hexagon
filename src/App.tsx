@@ -37,11 +37,11 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
     <main style={{ backgroundColor: "#07090d", color: "#e8eef5" }}>
       <div className="px-5 pb-16 pt-12" style={{ background: "radial-gradient(circle at 50% 0%, #102d38 0%, #07090d 46%, #030407 100%)" }}>
         <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-          <div className="relative order-2 h-[340px] overflow-hidden border sm:h-[420px] lg:order-1" style={{ borderColor: "#1b2430", backgroundColor: "#07090d" }}>
+          <div className="relative h-[340px] overflow-hidden border sm:h-[420px]" style={{ borderColor: "#1b2430", backgroundColor: "#07090d" }}>
             <TeaserScene />
           </div>
 
-          <section className="order-1 w-full border p-7 sm:p-10 lg:order-2" style={{ backgroundColor: "#0d1117e6", borderColor: "#1b8da2", boxShadow: "0 0 42px rgba(79,208,224,.16)" }}>
+          <section className="w-full border p-7 sm:p-10" style={{ backgroundColor: "#0d1117e6", borderColor: "#1b8da2", boxShadow: "0 0 42px rgba(79,208,224,.16)" }}>
             <p className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The Hexagon // trade review council</p>
             <h1 className="mt-4 text-4xl font-black tracking-tight">CONVENE THE COUNCIL</h1>
             <p className="mt-5 max-w-xl text-sm leading-6" style={{ color: "#aebac8" }}>
@@ -90,7 +90,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>How it works</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {STEPS.map((step) => (
-              <div key={step.n} className="border p-5" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
+              <div key={step.n} className="border p-5 transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
                 <p className="text-2xl font-black" style={{ color: "#d4af37" }}>{step.n}</p>
                 <p className="mt-2 text-sm font-bold uppercase tracking-wider">{step.title}</p>
                 <p className="mt-2 text-xs leading-5" style={{ color: "#8a97a8" }}>{step.body}</p>
@@ -103,7 +103,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The six seats</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {SEATS.map((seat) => (
-              <div key={seat.name} className="border p-5" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
+              <div key={seat.name} className="border p-5 transition-colors hover:border-[#d4af37]" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
                 <p className="text-sm font-bold" style={{ color: "#e8eef5" }}>
                   {seat.name} <span style={{ color: "#4fd0e0" }}>— {seat.role}</span>
                 </p>
