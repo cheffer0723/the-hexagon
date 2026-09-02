@@ -43,12 +43,16 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
 
           <section className="w-full border p-7 sm:p-10" style={{ backgroundColor: "#0d1117e6", borderColor: "#1b8da2", boxShadow: "0 0 42px rgba(79,208,224,.16)" }}>
             <p className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The Hexagon // trade review council</p>
-            <h1 className="mt-4 text-4xl font-black tracking-tight">CONVENE THE COUNCIL</h1>
-            <p className="mt-5 max-w-xl text-sm leading-6" style={{ color: "#aebac8" }}>
-              Upload a completed-trades CSV. Six independent OpenAI seats review the most instructive trade against the configured engine signals and return one forensic verdict.
+            <h1 className="mt-4 text-3xl font-black leading-tight tracking-tight sm:text-4xl">SIX PERSPECTIVES. ONE FORENSIC VERDICT.</h1>
+            <p className="mt-3 text-sm font-semibold uppercase tracking-wide" style={{ color: "#d6e3ed" }}>
+              Your trades. <em className="not-italic" style={{ color: "#4fd0e0" }}>Under scrutiny.</em>
+            </p>
+            <p className="mt-4 max-w-xl text-sm leading-6" style={{ color: "#aebac8" }}>
+              The Hexagon is an AI trade-review council built to challenge every assumption behind your completed trades — without flattery, hindsight theater, or easy answers.
             </p>
 
-            <label className="mt-8 block cursor-pointer border border-dashed p-8 text-center transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#395262", backgroundColor: "#080c10" }}>
+            <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: "#d4af37" }}>Convene the council</p>
+            <label className="mt-3 block cursor-pointer border border-dashed p-8 text-center transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#395262", backgroundColor: "#080c10" }}>
               <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
               <span className="block text-xs font-bold uppercase tracking-[0.24em]" style={{ color: "#4fd0e0" }}>
                 {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
@@ -87,7 +91,8 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
 
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-16 px-5 pb-16">
         <section className="w-full">
-          <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>How it works</p>
+          <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>01 // The council</p>
+          <p className="mt-3 text-center text-xl font-black tracking-tight sm:text-2xl">No single model gets the final word.</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {STEPS.map((step) => (
               <div key={step.n} className="border p-5 transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#1c2833", backgroundColor: "#0a0f14" }}>
@@ -114,7 +119,8 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
         </section>
 
         <footer className="w-full border-t pt-6 text-center text-[10px] uppercase tracking-[0.25em]" style={{ borderColor: "#1c2833", color: "#59636d" }}>
-          The Hexagon — educational analysis, not investment advice.
+          <p style={{ color: "#d4af37" }}>Built for traders who want the truth.</p>
+          <p className="mt-2">The Hexagon — educational analysis, not investment advice.</p>
         </footer>
       </div>
     </main>
