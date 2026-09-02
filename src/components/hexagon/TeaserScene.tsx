@@ -22,23 +22,36 @@ const TOP_PATH = HEX_TOP.map((pt, i) => `${i === 0 ? "M" : "L"} ${pt[0]} ${pt[1]
 const FRONT_IDX = [0, 5, 4, 3];
 const BACK_IDX = [1, 2];
 
-// A minimal wireframe chair — back rail + seat bar + two legs — parked
-// just outside each table vertex, facing the center.
+// A minimal side-profile chair — an L-shaped back-and-seat line plus two
+// thin legs — parked just outside each table vertex, rotated to face in.
+const CHAIR_SEAT_DEPTH = 3.2;
+const CHAIR_BACK_HEIGHT = 4;
+const CHAIR_LEG_LENGTH = 3.4;
+
 const CHAIRS = HEX_TOP.map(([x, y], i) => {
   const dx = x - TBL.cx, dy = y - TBL.cy;
   const len = Math.hypot(dx, dy) || 1;
   const ux = dx / len, uy = dy / len;
-  const ax = x + ux * 8, ay = y + uy * 8;
-  const half = 2.6;
-  const backTopY = ay - 4.5;
-  const seatY = ay + 0.5;
-  const legBottomY = HEX_BOT[i][1] + TBL.leg * 0.85;
+  const theta = Math.atan2(uy, ux);
+  const cosT = Math.cos(theta), sinT = Math.sin(theta);
+
+  const originX = x + ux * 3.2, originY = y + uy * 3.2;
+  const toGlobal = (lx: number, ly: number): [number, number] => [
+    originX + lx * cosT - ly * sinT,
+    originY + lx * sinT + ly * cosT,
+  ];
+
+  const backTop = toGlobal(CHAIR_SEAT_DEPTH, -CHAIR_BACK_HEIGHT);
+  const backBottom = toGlobal(CHAIR_SEAT_DEPTH, 0);
+  const seatFront = toGlobal(0, 0);
+  const frontLeg = toGlobal(0, CHAIR_LEG_LENGTH);
+  const backLeg = toGlobal(CHAIR_SEAT_DEPTH, CHAIR_LEG_LENGTH);
+
   return {
     key: `chair${i}`,
-    back: `M ${ax - half} ${seatY} L ${ax - half} ${backTopY} L ${ax + half} ${backTopY} L ${ax + half} ${seatY}`,
-    seat: `M ${ax - half * 1.35} ${seatY} L ${ax + half * 1.35} ${seatY}`,
-    legL: `M ${ax - half} ${seatY} L ${ax - half * 0.7} ${legBottomY}`,
-    legR: `M ${ax + half} ${seatY} L ${ax + half * 0.7} ${legBottomY}`,
+    silhouette: `M ${backTop[0]} ${backTop[1]} L ${backBottom[0]} ${backBottom[1]} L ${seatFront[0]} ${seatFront[1]}`,
+    legFront: `M ${seatFront[0]} ${seatFront[1]} L ${frontLeg[0]} ${frontLeg[1]}`,
+    legBack: `M ${backBottom[0]} ${backBottom[1]} L ${backLeg[0]} ${backLeg[1]}`,
   };
 });
 
@@ -141,11 +154,10 @@ export default function TeaserScene() {
       <div className="absolute left-1/2" style={{ top: "40%", width: "min(80%, 360px)", transform: "translateX(-50%)", aspectRatio: "1 / 1" }}>
         <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
           {CHAIRS.map((c) => (
-            <g key={c.key} opacity="0.5">
-              <path d={c.back} fill="none" stroke={COLORS.cyan} strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" />
-              <path d={c.seat} fill="none" stroke={COLORS.cyan} strokeWidth="1" strokeLinecap="round" />
-              <path d={c.legL} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinecap="round" />
-              <path d={c.legR} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinecap="round" />
+            <g key={c.key} opacity="0.45">
+              <path d={c.silhouette} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinejoin="round" strokeLinecap="round" />
+              <path d={c.legFront} fill="none" stroke={COLORS.cyan} strokeWidth="0.5" strokeLinecap="round" />
+              <path d={c.legBack} fill="none" stroke={COLORS.cyan} strokeWidth="0.5" strokeLinecap="round" />
             </g>
           ))}
 
