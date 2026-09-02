@@ -1,6 +1,7 @@
 import { ChangeEvent, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
+import TeaserScene from "@/components/hexagon/TeaserScene";
 import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
 import type { HexagonReview } from "@/components/hexagon/sample";
 
@@ -33,53 +34,58 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
   };
 
   return (
-    <main
-      className="min-h-screen px-5 py-12"
-      style={{ background: "radial-gradient(circle at 50% 20%, #102d38 0%, #07090d 42%, #030407 100%)", color: "#e8eef5" }}
-    >
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-16">
-        <section className="w-full max-w-2xl border p-7 sm:p-10" style={{ backgroundColor: "#0d1117e6", borderColor: "#1b8da2", boxShadow: "0 0 42px rgba(79,208,224,.16)" }}>
-          <p className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The Hexagon // trade review council</p>
-          <h1 className="mt-4 text-4xl sm:text-5xl font-black tracking-tight">CONVENE THE COUNCIL</h1>
-          <p className="mt-5 max-w-xl text-sm leading-6" style={{ color: "#aebac8" }}>
-            Upload a completed-trades CSV. Six independent OpenAI seats review the most instructive trade against the configured engine signals and return one forensic verdict.
-          </p>
-
-          <label className="mt-8 block cursor-pointer border border-dashed p-8 text-center transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#395262", backgroundColor: "#080c10" }}>
-            <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
-            <span className="block text-xs font-bold uppercase tracking-[0.24em]" style={{ color: "#4fd0e0" }}>
-              {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
-            </span>
-            <span className="mt-3 block text-xs" style={{ color: "#8a97a8" }}>Maximum 500 rows / 1 MB</span>
-          </label>
-
-          <button
-            type="button"
-            onClick={onOpenSandbox}
-            className="mt-4 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] transition-colors hover:border-[#d4af37] hover:text-[#d4af37]"
-            style={{ borderColor: "#59636d", backgroundColor: "#0a0f14", color: "#d6e3ed" }}
-          >
-            Open local sandbox — no API call
-          </button>
-
-          <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#8a97a8" }}>
-            <div>
-              <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Required columns</p>
-              <code className="mt-2 block break-all leading-5">{CSV_HEADERS}</code>
-            </div>
-            <div>
-              <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Privacy & scope</p>
-              <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
-            </div>
+    <main style={{ backgroundColor: "#07090d", color: "#e8eef5" }}>
+      <div className="px-5 pb-16 pt-12" style={{ background: "radial-gradient(circle at 50% 0%, #102d38 0%, #07090d 46%, #030407 100%)" }}>
+        <div className="mx-auto grid max-w-5xl items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
+          <div className="relative order-2 h-[340px] overflow-hidden border sm:h-[420px] lg:order-1" style={{ borderColor: "#1b2430", backgroundColor: "#07090d" }}>
+            <TeaserScene />
           </div>
 
-          {!API_BASE_URL && (
-            <p className="mt-7 border-l-2 pl-3 text-xs leading-5" style={{ borderColor: "#ff5d5d", color: "#ffb0b0" }}>
-              The live council is not configured yet. Set <code>VITE_HEXAGON_API_BASE_URL</code> when the Hexagon API service is deployed.
+          <section className="order-1 w-full border p-7 sm:p-10 lg:order-2" style={{ backgroundColor: "#0d1117e6", borderColor: "#1b8da2", boxShadow: "0 0 42px rgba(79,208,224,.16)" }}>
+            <p className="text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>The Hexagon // trade review council</p>
+            <h1 className="mt-4 text-4xl font-black tracking-tight">CONVENE THE COUNCIL</h1>
+            <p className="mt-5 max-w-xl text-sm leading-6" style={{ color: "#aebac8" }}>
+              Upload a completed-trades CSV. Six independent OpenAI seats review the most instructive trade against the configured engine signals and return one forensic verdict.
             </p>
-          )}
-        </section>
 
+            <label className="mt-8 block cursor-pointer border border-dashed p-8 text-center transition-colors hover:border-[#4fd0e0]" style={{ borderColor: "#395262", backgroundColor: "#080c10" }}>
+              <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
+              <span className="block text-xs font-bold uppercase tracking-[0.24em]" style={{ color: "#4fd0e0" }}>
+                {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
+              </span>
+              <span className="mt-3 block text-xs" style={{ color: "#8a97a8" }}>Maximum 500 rows / 1 MB</span>
+            </label>
+
+            <button
+              type="button"
+              onClick={onOpenSandbox}
+              className="mt-4 w-full border px-5 py-3 text-xs font-bold uppercase tracking-[0.18em] transition-colors hover:border-[#d4af37] hover:text-[#d4af37]"
+              style={{ borderColor: "#59636d", backgroundColor: "#0a0f14", color: "#d6e3ed" }}
+            >
+              Open local sandbox — no API call
+            </button>
+
+            <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#8a97a8" }}>
+              <div>
+                <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Required columns</p>
+                <code className="mt-2 block break-all leading-5">{CSV_HEADERS}</code>
+              </div>
+              <div>
+                <p className="font-bold uppercase tracking-widest" style={{ color: "#d4af37" }}>Privacy & scope</p>
+                <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
+              </div>
+            </div>
+
+            {!API_BASE_URL && (
+              <p className="mt-7 border-l-2 pl-3 text-xs leading-5" style={{ borderColor: "#ff5d5d", color: "#ffb0b0" }}>
+                The live council is not configured yet. Set <code>VITE_HEXAGON_API_BASE_URL</code> when the Hexagon API service is deployed.
+              </p>
+            )}
+          </section>
+        </div>
+      </div>
+
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-16 px-5 pb-16">
         <section className="w-full">
           <p className="text-center text-[10px] uppercase tracking-[0.35em]" style={{ color: "#4fd0e0" }}>How it works</p>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
