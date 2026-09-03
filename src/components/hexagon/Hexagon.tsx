@@ -1,6 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import type { HexagonReview } from "./sample";
+import type { AgentVerdict, HexagonAgent, HexagonReview } from "./sample";
 import { SeatIcon, type SeatIconId } from "./seatIcons";
+import type { SandboxScenario } from "./sandbox";
 
 const COLORS = {
   bg: "#07090d",
@@ -360,14 +361,176 @@ function AgentCard({
   );
 }
 
+function truncate(s: string, n: number) {
+  return s.length > n ? s.slice(0, n - 1).trimEnd() + "…" : s;
+}
+
+// Instead of six text panels alone, ground each claim at roughly where it
+// sits between entry and exit — the argument tied to the trade, not just
+// to a chat bubble.
+function GroundedTimeline({
+  trade, agents, dissenter,
+}: {
+  trade: HexagonReview["trade"];
+  agents: HexagonAgent[];
+  dissenter?: HexagonAgent;
+}) {
+  const picks: HexagonAgent[] = [];
+  const add = (a?: HexagonAgent) => { if (a && !picks.some((p) => p.id === a.id)) picks.push(a); };
+  add(agents[0]);
+  add(agents.find((a) => a.id === "regime") ?? agents[Math.floor(agents.length / 2)]);
+  add(dissenter ?? agents[agents.length - 1]);
+  const align: Array<"flex-start" | "center" | "flex-end"> = ["flex-start", "center", "flex-end"];
+  const textAlign: Array<"left" | "center" | "right"> = ["left", "center", "right"];
+
+  return (
+    <div
+      className="relative flex-shrink-0 px-6 pt-4 pb-5"
+      style={{ zIndex: 2, borderBottom: `1px solid ${COLORS.border}`, backgroundColor: COLORS.panelDeep }}
+    >
+      <div className="text-[8px] uppercase tracking-[0.28em] font-semibold mb-3" style={{ color: COLORS.steel }}>
+        Claims, pinned to the trade
+      </div>
+      <div style={{ height: 1, background: COLORS.border, marginBottom: 14 }} />
+      <div className="flex items-start justify-between gap-3">
+        {picks.map((a, i) => {
+          const color = a.verdict === "mistake" ? COLORS.red : COLORS.green;
+          return (
+            <div key={a.id} className="flex flex-col" style={{ maxWidth: 230, alignItems: align[i], textAlign: textAlign[i] }}>
+              <div className="rounded-full mb-2" style={{ width: 7, height: 7, flexShrink: 0, background: color, boxShadow: `0 0 8px ${color}` }} />
+              <div className="border px-2.5 py-2" style={{ borderColor: `${color}55`, backgroundColor: `${COLORS.panel}ee` }}>
+                <div className="text-[8.5px] font-bold uppercase tracking-wide mb-0.5" style={{ color }}>{a.name}</div>
+                <p className="text-[10px] leading-snug" style={{ color: COLORS.ink, margin: 0 }}>{truncate(a.text, 110)}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center justify-between mt-3 text-[9px]" style={{ color: COLORS.steel }}>
+        <span>{trade.entryDate} · Entry ${trade.entryPrice.toFixed(2)}</span>
+        <span>{trade.exitDate} · Exit ${trade.exitPrice.toFixed(2)}</span>
+      </div>
+    </div>
+  );
+}
+
+function buildCaseCardText(review: HexagonReview, majorityVerdict: AgentVerdict, dissenter?: HexagonAgent) {
+  const { trade, verdict } = review;
+  return [
+    "THE HEXAGON — CASE FILE",
+    `${trade.symbol} · ${trade.entryDate} → ${trade.exitDate}`,
+    `Verdict: ${verdict.decision}`,
+    `Council split ${verdict.consensusMistake}–${verdict.consensusDefensible} · Cost of the mistake: ${formatMoneyPlain(verdict.decisionCost)}`,
+    "",
+    `Majority (${majorityVerdict}): ${verdict.summary}`,
+    dissenter ? `Dissent — ${dissenter.name}: ${dissenter.text}` : "Unanimous — no dissent filed.",
+    "",
+    "instance6.xyz — educational analysis, not investment advice",
+  ].join("\n");
+}
+
+// A single shareable "receipt" generated at verdict — built to be saved,
+// not screenshotted.
+function CaseCard({
+  review, majorityVerdict, dissenter, onClose,
+}: {
+  review: HexagonReview;
+  majorityVerdict: AgentVerdict;
+  dissenter?: HexagonAgent;
+  onClose: () => void;
+}) {
+  const { trade, verdict } = review;
+  const [copied, setCopied] = useState(false);
+  const majorityColor = majorityVerdict === "mistake" ? COLORS.red : COLORS.green;
+  const dissentColor = majorityVerdict === "mistake" ? COLORS.green : COLORS.red;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(buildCaseCardText(review, majorityVerdict, dissenter));
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      // clipboard unavailable — silently no-op, the card is still on screen to read
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ backgroundColor: "#000000a0" }}
+      onClick={onClose}
+    >
+      <div
+        className="w-full"
+        style={{
+          maxWidth: 380, border: `1px solid ${COLORS.cyan}40`,
+          background: `linear-gradient(165deg, ${COLORS.panel}, ${COLORS.panelDeep} 70%)`,
+          boxShadow: `0 20px 60px -20px ${COLORS.cyan}40`, padding: "22px 24px 20px",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-2 pb-3" style={{ borderBottom: `1px solid ${COLORS.border}` }}>
+          <svg width="16" height="18" viewBox="0 0 32 36" style={{ flexShrink: 0 }} aria-hidden="true">
+            <polygon points="16,0 30.4,9 30.4,27 16,36 1.6,27 1.6,9" fill="none" stroke={COLORS.cyan} strokeWidth="1.8" />
+            <polygon points="16,13 22.5,15.5 16,18 9.5,15.5" fill={COLORS.cyan} opacity="0.9" />
+          </svg>
+          <span className="text-[9px] font-bold uppercase tracking-[0.24em]" style={{ color: COLORS.steel }}>The Hexagon · Case File</span>
+        </div>
+
+        <div className="text-center py-4">
+          <div className="text-[12px]" style={{ color: COLORS.steel }}>{trade.symbol} · {trade.entryDate} → {trade.exitDate}</div>
+          <div className="text-[42px] font-black" style={{ color: COLORS.cyan, textShadow: `0 0 20px ${COLORS.cyan}55`, margin: "6px 0 2px" }}>
+            {verdict.decision}
+          </div>
+          <div className="text-[11px]" style={{ color: COLORS.steel }}>
+            Council split <b style={{ color: COLORS.ink }}>{verdict.consensusMistake}–{verdict.consensusDefensible}</b>
+            {" · "}Cost <b style={{ color: COLORS.gold }}>{formatMoneyPlain(verdict.decisionCost)}</b>
+          </div>
+
+          <div className="grid gap-2.5 mt-4 text-left">
+            <div className="pl-2.5 text-[11px] leading-snug" style={{ borderLeft: `2px solid ${majorityColor}`, color: COLORS.ink }}>
+              <b className="block text-[9px] uppercase tracking-wide mb-0.5" style={{ color: majorityColor }}>Majority</b>
+              {verdict.summary}
+            </div>
+            <div className="pl-2.5 text-[11px] leading-snug" style={{ borderLeft: `2px solid ${dissentColor}`, color: COLORS.ink }}>
+              <b className="block text-[9px] uppercase tracking-wide mb-0.5" style={{ color: dissentColor }}>Dissent</b>
+              {dissenter ? `${dissenter.name}: ${dissenter.text}` : "Unanimous — no dissent filed."}
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={copy}
+          className="w-full mt-1 py-2.5 text-[10px] font-bold uppercase tracking-widest"
+          style={{ border: `1px solid ${COLORS.cyan}`, color: COLORS.cyan, backgroundColor: `${COLORS.cyan}14` }}
+        >
+          {copied ? "Copied ✓" : "Copy case card ↓"}
+        </button>
+        <div className="text-center mt-2.5 text-[8.5px] uppercase tracking-widest" style={{ color: COLORS.steel }}>
+          instance6.xyz · Educational analysis, not investment advice
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Hexagon({
   review,
   autoPlay = true,
   onExit,
+  isSandbox = false,
+  sandboxScenario,
+  scenarios,
+  onScenarioChange,
 }: {
   review: HexagonReview;
   autoPlay?: boolean;
   onExit?: () => void;
+  isSandbox?: boolean;
+  sandboxScenario?: SandboxScenario;
+  scenarios?: SandboxScenario[];
+  onScenarioChange?: (scenario: SandboxScenario) => void;
 }) {
   const agents = review.agents.slice(0, 6);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -381,6 +544,7 @@ export default function Hexagon({
   const [flashOpacity, setFlashOpacity] = useState(0);
   const [shockwave, setShockwave]       = useState(false);
   const [runKey, setRunKey]             = useState(0);
+  const [showCase, setShowCase]         = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement|null>(null);
   useParticles(canvasRef, phase === "deliberating");
@@ -480,6 +644,8 @@ export default function Hexagon({
   );
 
   const { trade, verdict, patternFlag } = review;
+  const majorityVerdict: AgentVerdict = verdict.consensusMistake >= verdict.consensusDefensible ? "mistake" : "defensible";
+  const dissenter = agents.find((a) => a.verdict !== majorityVerdict);
 
   const verdictDisplayed = useTypewriter(verdict.decision, showVerdict, 55);
 
@@ -803,6 +969,8 @@ export default function Hexagon({
         </div>
       </div>
 
+      {showSummary && <GroundedTimeline trade={trade} agents={agents} dissenter={dissenter} />}
+
       {/* ── MAIN BODY ── */}
       <div ref={rowRef} className="flex-1 flex relative min-h-0" style={{ zIndex: 2 }}>
 
@@ -1025,6 +1193,35 @@ export default function Hexagon({
 
         {/* RIGHT COLUMN */}
         <div className="flex flex-col gap-3 p-3 flex-shrink-0 relative" style={{ width: 288, zIndex: 1 }}>
+          {isSandbox && sandboxScenario && (
+            <div className="border p-3.5" style={{ borderColor: "#1b8da2", backgroundColor: `${COLORS.panelDeep}ee`, boxShadow: "0 0 26px rgba(79,208,224,.14)" }}>
+              <p className="text-[9px] font-bold uppercase tracking-[0.18em]" style={{ color: COLORS.cyan }}>Local sandbox · no API call</p>
+              <p className="mt-2 text-sm font-bold" style={{ color: COLORS.ink }}>{sandboxScenario.title}</p>
+              <p className="mt-1 text-[11px] leading-4" style={{ color: COLORS.steel }}>{sandboxScenario.lesson}</p>
+              {scenarios && onScenarioChange && (
+                <div className="mt-3 grid gap-2">
+                  {scenarios.map((scenario) => (
+                    <button
+                      key={scenario.id}
+                      type="button"
+                      onClick={() => onScenarioChange(scenario)}
+                      className="border px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider"
+                      style={{
+                        borderColor: scenario.id === sandboxScenario.id ? COLORS.gold : COLORS.border,
+                        color: scenario.id === sandboxScenario.id ? COLORS.gold : "#aebac8",
+                        backgroundColor: scenario.id === sandboxScenario.id ? "#d4af3712" : "transparent",
+                      }}
+                    >
+                      {scenario.title}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <p className="mt-4 border-t pt-3 text-[10px] leading-4" style={{ borderColor: COLORS.border, color: COLORS.steel }}>
+                <span style={{ color: COLORS.cyan }}>Signal:</span> {sandboxScenario.evidence.signal}
+              </p>
+            </div>
+          )}
           {rightAgents.map((agentIdx) => (
             <AgentCard
               key={agents[agentIdx].id}
@@ -1067,6 +1264,16 @@ export default function Hexagon({
           </button>
 
           {showSummary && (
+            <button
+              onClick={() => setShowCase(true)}
+              className="px-5 py-2 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all duration-200"
+              style={{ backgroundColor:"transparent", border:`1px solid ${COLORS.gold}`, color:COLORS.gold, animation:`fadeInZ${uid} 0.5s ease` }}
+            >
+              Case Card
+            </button>
+          )}
+
+          {showSummary && (
             <div
               className="flex items-center gap-4 text-[10px]"
               style={{ color: COLORS.steel, animation:`fadeInZ${uid} 0.5s ease` }}
@@ -1078,6 +1285,15 @@ export default function Hexagon({
           )}
         </div>
       </div>
+
+      {showCase && (
+        <CaseCard
+          review={review}
+          majorityVerdict={majorityVerdict}
+          dissenter={dissenter}
+          onClose={() => setShowCase(false)}
+        />
+      )}
     </div>
   );
 }
