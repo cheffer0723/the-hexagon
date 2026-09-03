@@ -22,6 +22,39 @@ const TOP_PATH = HEX_TOP.map((pt, i) => `${i === 0 ? "M" : "L"} ${pt[0]} ${pt[1]
 const FRONT_IDX = [0, 5, 4, 3];
 const BACK_IDX = [1, 2];
 
+// A minimal side-profile chair — an L-shaped back-and-seat line plus two
+// thin legs — parked just outside each table vertex, rotated to face in.
+const CHAIR_SEAT_DEPTH = 3.2;
+const CHAIR_BACK_HEIGHT = 4;
+const CHAIR_LEG_LENGTH = 3.4;
+
+const CHAIRS = HEX_TOP.map(([x, y], i) => {
+  const dx = x - TBL.cx, dy = y - TBL.cy;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len;
+  const theta = Math.atan2(uy, ux);
+  const cosT = Math.cos(theta), sinT = Math.sin(theta);
+
+  const originX = x + ux * 3.2, originY = y + uy * 3.2;
+  const toGlobal = (lx: number, ly: number): [number, number] => [
+    originX + lx * cosT - ly * sinT,
+    originY + lx * sinT + ly * cosT,
+  ];
+
+  const backTop = toGlobal(CHAIR_SEAT_DEPTH, -CHAIR_BACK_HEIGHT);
+  const backBottom = toGlobal(CHAIR_SEAT_DEPTH, 0);
+  const seatFront = toGlobal(0, 0);
+  const frontLeg = toGlobal(0, CHAIR_LEG_LENGTH);
+  const backLeg = toGlobal(CHAIR_SEAT_DEPTH, CHAIR_LEG_LENGTH);
+
+  return {
+    key: `chair${i}`,
+    silhouette: `M ${backTop[0]} ${backTop[1]} L ${backBottom[0]} ${backBottom[1]} L ${seatFront[0]} ${seatFront[1]}`,
+    legFront: `M ${seatFront[0]} ${seatFront[1]} L ${frontLeg[0]} ${frontLeg[1]}`,
+    legBack: `M ${backBottom[0]} ${backBottom[1]} L ${backLeg[0]} ${backLeg[1]}`,
+  };
+});
+
 export default function TeaserScene() {
   const uid = useId().replace(/[:]/g, "");
 
@@ -88,7 +121,7 @@ export default function TeaserScene() {
             <path d="M7 0.8 L13.2 4.4 V11.6 L7 15.2 L0.8 11.6 V4.4 Z" stroke={`${COLORS.cyan}88`} strokeWidth="1" />
           </svg>
           <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 7, letterSpacing: "0.35em", color: `${COLORS.steel}cc`, textTransform: "uppercase", whiteSpace: "nowrap" }}>
-            Obsidian&nbsp;Abyss&nbsp;//&nbsp;Deliberation&nbsp;Chamber
+            Deliberation&nbsp;Chamber
           </span>
           <svg width="10" height="12" viewBox="0 0 14 16" fill="none">
             <path d="M7 0.8 L13.2 4.4 V11.6 L7 15.2 L0.8 11.6 V4.4 Z" stroke={`${COLORS.cyan}88`} strokeWidth="1" />
@@ -99,9 +132,9 @@ export default function TeaserScene() {
         <span
           style={{
             fontFamily: "'Inter', sans-serif", fontWeight: 800,
-            fontSize: "clamp(22px, 6cqw, 34px)", lineHeight: 1,
+            fontSize: "clamp(24px, 6.6cqw, 38px)", lineHeight: 1,
             letterSpacing: "0.32em", textIndent: "0.32em",
-            color: "transparent", WebkitTextStroke: `1.1px ${COLORS.cyan}66`,
+            color: "transparent", WebkitTextStroke: `1.6px ${COLORS.cyan}99`,
           }}
         >
           THE&nbsp;HEXAGON
@@ -118,36 +151,44 @@ export default function TeaserScene() {
       </div>
 
       {/* Hex table stage, idle */}
-      <div className="absolute left-1/2" style={{ top: "42%", width: "min(60%, 260px)", transform: "translateX(-50%)", aspectRatio: "1 / 1" }}>
+      <div className="absolute left-1/2" style={{ top: "40%", width: "min(80%, 360px)", transform: "translateX(-50%)", aspectRatio: "1 / 1" }}>
         <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
+          {CHAIRS.map((c) => (
+            <g key={c.key} opacity="0.45">
+              <path d={c.silhouette} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinejoin="round" strokeLinecap="round" />
+              <path d={c.legFront} fill="none" stroke={COLORS.cyan} strokeWidth="0.5" strokeLinecap="round" />
+              <path d={c.legBack} fill="none" stroke={COLORS.cyan} strokeWidth="0.5" strokeLinecap="round" />
+            </g>
+          ))}
+
           {FRONT_IDX.map((i) => (
-            <line key={`leg${i}`} x1={HEX_BOT[i][0]} y1={HEX_BOT[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1] + TBL.leg} stroke={COLORS.cyan} strokeWidth="1.4" strokeLinecap="round" opacity="0.18" />
+            <line key={`leg${i}`} x1={HEX_BOT[i][0]} y1={HEX_BOT[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1] + TBL.leg} stroke={COLORS.cyan} strokeWidth="2" strokeLinecap="round" opacity="0.32" />
           ))}
           {BACK_IDX.map((i) => (
-            <line key={`bstrut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="0.4" opacity="0.12" strokeLinecap="round" />
+            <line key={`bstrut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="0.55" opacity="0.2" strokeLinecap="round" />
           ))}
           {FRONT_IDX.map((i) => (
-            <line key={`strut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="1.0" strokeLinecap="round" opacity="0.3" />
+            <line key={`strut${i}`} x1={HEX_TOP[i][0]} y1={HEX_TOP[i][1]} x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1]} stroke={COLORS.cyan} strokeWidth="1.6" strokeLinecap="round" opacity="0.5" />
           ))}
-          <path d={TOP_PATH} fill="rgba(79,208,224,0.035)" stroke="none" />
+          <path d={TOP_PATH} fill="rgba(79,208,224,0.07)" stroke="none" />
           {HEX_TOP.map(([x, y], i) => (
-            <line key={`spoke${i}`} x1={TBL.cx} y1={TBL.cy} x2={x} y2={y} stroke={COLORS.cyan} strokeWidth="0.3" opacity="0.16" />
+            <line key={`spoke${i}`} x1={TBL.cx} y1={TBL.cy} x2={x} y2={y} stroke={COLORS.cyan} strokeWidth="0.45" opacity="0.24" />
           ))}
-          <path d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="0.8" strokeLinejoin="round" opacity="0.55" />
+          <path d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.4" strokeLinejoin="round" opacity="0.78" />
           <path
-            d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.1" strokeLinejoin="round" strokeLinecap="round"
+            d={TOP_PATH} fill="none" stroke={COLORS.cyan} strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round"
             className={`tztrace${uid}`}
-            style={{ strokeDasharray: "26 194", opacity: 0.6 }}
+            style={{ strokeDasharray: "26 194", opacity: 0.75 }}
           />
           {HEX_TOP.map(([x, y], i) => (
-            <path key={`seat${i}`} d={`M ${x} ${y - 1.8} L ${x + 1.8} ${y} L ${x} ${y + 1.8} L ${x - 1.8} ${y} Z`} fill={COLORS.border} />
+            <path key={`seat${i}`} d={`M ${x} ${y - 2.4} L ${x + 2.4} ${y} L ${x} ${y + 2.4} L ${x - 2.4} ${y} Z`} fill={`${COLORS.cyan}66`} stroke={COLORS.cyan} strokeWidth="0.4" />
           ))}
         </svg>
 
         <div className="absolute flex flex-col items-center text-center" style={{ left: "50%", top: "50%", transform: "translate(-50%,-50%)" }}>
           <div
-            className={`text-[8px] font-semibold uppercase tracking-[0.3em] tzglow${uid}`}
-            style={{ color: COLORS.cyan, opacity: 0.85 }}
+            className={`text-[9px] font-bold uppercase tracking-[0.3em] tzglow${uid}`}
+            style={{ color: COLORS.cyan, opacity: 0.95 }}
           >
             Six seats · standing by
           </div>

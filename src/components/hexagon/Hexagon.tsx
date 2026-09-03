@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { HexagonReview } from "./sample";
+import { SeatIcon, type SeatIconId } from "./seatIcons";
 
 const COLORS = {
   bg: "#07090d",
@@ -181,12 +182,12 @@ function useTypewriter(text: string, go: boolean, msPerChar = 22) {
   return displayed;
 }
 
-function SeatedFigure({ color, active }: { color: string; active: boolean }) {
+function SeatedFigure({ id, color, active }: { id: SeatIconId; color: string; active: boolean }) {
   return (
-    <svg viewBox="0 0 40 40" style={{ width:18, height:18, flexShrink:0, filter: active ? `drop-shadow(0 0 6px ${color})` : "none", transition:"filter 300ms" }}>
-      <circle cx="20" cy="12" r="6.5" fill={color} opacity="0.9" />
-      <path d="M8 34 C8 24 13 19 20 19 C27 19 32 24 32 34 Z" fill={color} opacity="0.75" />
-    </svg>
+    <SeatIcon
+      id={id}
+      style={{ width: 15, height: 15, flexShrink: 0, color, filter: active ? `drop-shadow(0 0 6px ${color})` : "none", transition: "filter 300ms" }}
+    />
   );
 }
 
@@ -273,7 +274,7 @@ function AgentCard({
           animation: isActive ? `ledPulseZ${uid} 0.7s ease-in-out infinite alternate` : "none",
           transition: "background-color 200ms, box-shadow 200ms",
         }} />
-        <SeatedFigure color={figColor} active={isActive} />
+        <SeatedFigure id={agent.id as SeatIconId} color={figColor} active={isActive} />
         <span
           className="text-[10px] font-semibold flex-1 truncate"
           style={{
