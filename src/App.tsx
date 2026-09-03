@@ -288,9 +288,8 @@ export default function App() {
   return (
     <>
       <div className="hidden md:block">
-        <button onClick={() => { setReview(null); setNotice(null); setSandboxScenario(null); setIsSandbox(false); }} className="fixed left-4 top-4 z-[60] border px-3 py-2 text-[10px] font-bold uppercase tracking-widest" style={{ color: "#4fd0e0", backgroundColor: "#080c10e6", borderColor: "#1b8da2" }}>Review another CSV</button>
         {isSandbox && sandboxScenario && (
-          <aside className="fixed right-4 top-4 z-[60] w-64 border p-4" style={{ backgroundColor: "#080c10ee", borderColor: "#1b8da2", boxShadow: "0 0 26px rgba(79,208,224,.14)" }}>
+          <aside className="fixed right-4 top-20 z-[60] w-64 border p-4" style={{ backgroundColor: "#080c10ee", borderColor: "#1b8da2", boxShadow: "0 0 26px rgba(79,208,224,.14)" }}>
             <p className="text-[9px] font-bold uppercase tracking-[0.18em]" style={{ color: "#4fd0e0" }}>Local sandbox · no API call</p>
             <p className="mt-2 text-sm font-bold" style={{ color: "#e8eef5" }}>{sandboxScenario.title}</p>
             <p className="mt-1 text-[11px] leading-4" style={{ color: "#8a97a8" }}>{sandboxScenario.lesson}</p>
@@ -312,7 +311,11 @@ export default function App() {
             </p>
           </aside>
         )}
-        <Hexagon review={review} autoPlay={true} />
+        <Hexagon
+          review={review}
+          autoPlay={true}
+          onExit={() => { setReview(null); setNotice(null); setSandboxScenario(null); setIsSandbox(false); }}
+        />
       </div>
       <div className="md:hidden">
         <MobileHexagon
