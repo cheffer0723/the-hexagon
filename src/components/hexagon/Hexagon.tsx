@@ -363,9 +363,11 @@ function AgentCard({
 export default function Hexagon({
   review,
   autoPlay = true,
+  onExit,
 }: {
   review: HexagonReview;
   autoPlay?: boolean;
+  onExit?: () => void;
 }) {
   const agents = review.agents.slice(0, 6);
   const uid = useId().replace(/[^a-zA-Z0-9]/g, "");
@@ -734,19 +736,31 @@ export default function Hexagon({
         className="relative flex-shrink-0 flex items-center justify-between px-6 py-3"
         style={{ zIndex:2, borderBottom:`1px solid ${COLORS.border}`, backgroundColor:`${COLORS.panel}cc`, backdropFilter:"blur(8px)" }}
       >
-        <div className="flex flex-col">
-          <div
-            className="text-[9px] uppercase tracking-[0.32em] font-semibold"
-            style={{
-              color: COLORS.cyan,
-              animation: phase === "deliberating" ? `titleGlowZ${uid} 2s ease-in-out infinite` : "none",
-            }}
-          >
-            Trade Review Council
-          </div>
-          <div className="flex items-baseline gap-3 mt-0.5 flex-wrap">
-            <span className="text-lg font-bold">{trade.symbol}</span>
-            <span className="text-xs" style={{ color: COLORS.steel }}>{trade.entryDate} → {trade.exitDate}</span>
+        <div className="flex items-center gap-4">
+          {onExit && (
+            <button
+              type="button"
+              onClick={onExit}
+              className="flex-shrink-0 border px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-widest"
+              style={{ color: COLORS.cyan, backgroundColor: `${COLORS.panelDeep}cc`, borderColor: "#1b8da2" }}
+            >
+              ← New review
+            </button>
+          )}
+          <div className="flex flex-col">
+            <div
+              className="text-[9px] uppercase tracking-[0.32em] font-semibold"
+              style={{
+                color: COLORS.cyan,
+                animation: phase === "deliberating" ? `titleGlowZ${uid} 2s ease-in-out infinite` : "none",
+              }}
+            >
+              Trade Review Council
+            </div>
+            <div className="flex items-baseline gap-3 mt-0.5 flex-wrap">
+              <span className="text-lg font-bold">{trade.symbol}</span>
+              <span className="text-xs" style={{ color: COLORS.steel }}>{trade.entryDate} → {trade.exitDate}</span>
+            </div>
           </div>
         </div>
 
