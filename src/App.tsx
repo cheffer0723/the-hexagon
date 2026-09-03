@@ -11,7 +11,8 @@ const API_BASE_URL = (import.meta.env.VITE_HEXAGON_API_BASE_URL || "").replace(/
 
 const CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";
 
-const ACID = "#d7ff3f";
+const ACID = "#2dd4bf";
+const ACID2 = "#a78bfa";
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 const BODY_FONT = "'Arial Narrow', 'Helvetica Neue', Arial, sans-serif";
 
@@ -42,22 +43,17 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
         style={{ height: 82, padding: "0 clamp(24px,5vw,80px)", borderBottom: "1px solid #2a2c2f" }}
       >
         <a href="#top" className="flex items-center gap-3" style={{ letterSpacing: "0.16em", fontSize: "0.8rem", fontWeight: 800 }}>
-          <span
-            aria-hidden="true"
-            style={{ background: ACID, width: 25, height: 28, display: "block", clipPath: "polygon(50% 0,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%)" }}
-          />
+          <svg aria-hidden="true" width="25" height="28" viewBox="0 0 32 36" style={{ flexShrink: 0, display: "block" }}>
+            <polygon points="16,0 30.4,9 30.4,27 16,36 1.6,27 1.6,9" fill="none" stroke={ACID} strokeWidth="1.6" />
+            <polygon points="16,8.1 23.92,13.05 23.92,22.95 16,27.9 8.08,22.95 8.08,13.05" fill="none" stroke={ACID} strokeWidth="1.1" opacity="0.6" />
+            <polygon points="16,13 22.5,15.5 16,18 9.5,15.5" fill={ACID} opacity="0.95" />
+            <polygon points="9.5,15.5 16,18 16,25.5 9.5,23" fill={ACID} opacity="0.55" />
+            <polygon points="16,18 22.5,15.5 22.5,23 16,25.5" fill={ACID} opacity="0.75" />
+            <polygon points="16,26.8 18.2,27.65 16,28.5 13.8,27.65" fill={ACID} opacity="0.85" />
+            <polygon points="13.8,27.65 16,28.5 16,31 13.8,30.15" fill={ACID} opacity="0.5" />
+            <polygon points="16,28.5 18.2,27.65 18.2,30.15 16,31" fill={ACID} opacity="0.65" />
+          </svg>
           <span>THE HEXAGON</span>
-        </a>
-        <a
-          href="https://github.com/cheffer0723/the-hexagon"
-          target="_blank"
-          rel="noreferrer"
-          className="border uppercase transition-colors"
-          style={{ borderColor: "#3a3c3f", padding: "10px 14px", fontSize: "0.76rem", fontWeight: 700, letterSpacing: "0.1em" }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; e.currentTarget.style.color = ACID; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; e.currentTarget.style.color = ""; }}
-        >
-          View source ↗
         </a>
       </nav>
 
@@ -85,7 +81,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
             >
               Your trades.
               <br />
-              <span style={{ color: ACID }}>Under scrutiny.</span>
+              <span style={{ color: ACID2 }}>Under scrutiny.</span>
             </h1>
             <p style={{ color: "#a4a5a2", maxWidth: 650, margin: "0 0 36px", fontSize: "clamp(1.05rem,1.5vw,1.3rem)", lineHeight: 1.7 }}>
               The Hexagon is an AI trade-review council built to challenge every assumption behind your completed trades — without flattery, hindsight theater, or easy answers.
@@ -164,6 +160,9 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           </h2>
           <p style={{ color: "#91938f", maxWidth: 480, fontSize: "1.05rem", lineHeight: 1.7 }}>
             Upload a completed-trades CSV. Six independent reviewers interrogate the evidence in parallel, then deliberate toward a clear, actionable verdict.
+          </p>
+          <p style={{ marginTop: 14, fontFamily: MONO, fontSize: "0.62rem", letterSpacing: "0.16em", textTransform: "uppercase", color: "#4a525c" }}>
+            ↓ Scroll — the council convenes as you go
           </p>
         </div>
         <OrbitDiagram />
@@ -288,33 +287,14 @@ export default function App() {
   return (
     <>
       <div className="hidden md:block">
-        {isSandbox && sandboxScenario && (
-          <aside className="fixed right-4 top-20 z-[60] w-64 border p-4" style={{ backgroundColor: "#080c10ee", borderColor: "#1b8da2", boxShadow: "0 0 26px rgba(79,208,224,.14)" }}>
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em]" style={{ color: "#4fd0e0" }}>Local sandbox · no API call</p>
-            <p className="mt-2 text-sm font-bold" style={{ color: "#e8eef5" }}>{sandboxScenario.title}</p>
-            <p className="mt-1 text-[11px] leading-4" style={{ color: "#8a97a8" }}>{sandboxScenario.lesson}</p>
-            <div className="mt-3 grid gap-2">
-              {SANDBOX_SCENARIOS.map((scenario) => (
-                <button
-                  key={scenario.id}
-                  type="button"
-                  onClick={() => { setSandboxScenario(scenario); setReview(scenario.review); }}
-                  className="border px-3 py-2 text-left text-[10px] font-bold uppercase tracking-wider"
-                  style={{ borderColor: scenario.id === sandboxScenario.id ? "#d4af37" : "#263542", color: scenario.id === sandboxScenario.id ? "#d4af37" : "#aebac8", backgroundColor: scenario.id === sandboxScenario.id ? "#d4af3712" : "transparent" }}
-                >
-                  {scenario.title}
-                </button>
-              ))}
-            </div>
-            <p className="mt-4 border-t pt-3 text-[10px] leading-4" style={{ borderColor: "#263542", color: "#8a97a8" }}>
-              <span style={{ color: "#4fd0e0" }}>Signal:</span> {sandboxScenario.evidence.signal}
-            </p>
-          </aside>
-        )}
         <Hexagon
           review={review}
           autoPlay={true}
           onExit={() => { setReview(null); setNotice(null); setSandboxScenario(null); setIsSandbox(false); }}
+          isSandbox={isSandbox}
+          sandboxScenario={sandboxScenario ?? undefined}
+          scenarios={isSandbox ? SANDBOX_SCENARIOS : undefined}
+          onScenarioChange={(scenario) => { setSandboxScenario(scenario); setReview(scenario.review); }}
         />
       </div>
       <div className="md:hidden">
