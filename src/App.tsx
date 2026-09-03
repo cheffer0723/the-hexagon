@@ -3,6 +3,7 @@ import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
 import OrbitDiagram from "@/components/hexagon/OrbitDiagram";
 import TeaserScene from "@/components/hexagon/TeaserScene";
+import { SeatIcon } from "@/components/hexagon/seatIcons";
 import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
 import type { HexagonReview } from "@/components/hexagon/sample";
 
@@ -15,12 +16,12 @@ const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 const BODY_FONT = "'Arial Narrow', 'Helvetica Neue', Arial, sans-serif";
 
 const SEATS = [
-  { name: "Aegis", role: "Risk", line: "Was there a predefined stop — or did discretion do the deciding?" },
-  { name: "The Archon", role: "Quant", line: "Is this move signal, or noise inside the volatility band?" },
-  { name: "The Psyops Agent", role: "Behavioral", line: "Did the exit track a plan, or track price pain?" },
-  { name: "The Heretic", role: "Contrarian", line: "Steelmans the exit first, then tells you if it still holds." },
-  { name: "Cerberus", role: "Regime Class", line: "Checks the trade against the prevailing trend, not just the tape." },
-  { name: "The Sentinel", role: "Defense", line: "Argues the case for you — constraints the other five can't see." },
+  { id: "risk_manager", name: "Aegis", role: "Risk", line: "Was there a predefined stop — or did discretion do the deciding?" },
+  { id: "quant", name: "The Archon", role: "Quant", line: "Is this move signal, or noise inside the volatility band?" },
+  { id: "behavioral", name: "The Psyops Agent", role: "Behavioral", line: "Did the exit track a plan, or track price pain?" },
+  { id: "contrarian", name: "The Heretic", role: "Contrarian", line: "Steelmans the exit first, then tells you if it still holds." },
+  { id: "regime", name: "Cerberus", role: "Regime Class", line: "Checks the trade against the prevailing trend, not just the tape." },
+  { id: "devils_advocate", name: "The Sentinel", role: "Defense", line: "Argues the case for you — constraints the other five can't see." },
 ] as const;
 
 function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => void; onOpenSandbox: () => void }) {
@@ -181,9 +182,12 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#2a2c2f"; }}
             >
-              <p className="text-sm font-bold" style={{ color: "#f1efe8" }}>
-                {seat.name} <span style={{ color: ACID }}>— {seat.role}</span>
-              </p>
+              <div className="flex items-center gap-2">
+                <SeatIcon id={seat.id} style={{ width: 16, height: 16, color: ACID, flexShrink: 0 }} />
+                <p className="text-sm font-bold" style={{ color: "#f1efe8" }}>
+                  {seat.name} <span style={{ color: ACID }}>— {seat.role}</span>
+                </p>
+              </div>
               <p className="mt-2 text-xs leading-5" style={{ color: "#85898c" }}>{seat.line}</p>
             </div>
           ))}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { SandboxScenario } from "./sandbox";
 import type { HexagonReview } from "./sample";
+import { SeatIcon, type SeatIconId } from "./seatIcons";
 
 const COLORS = {
   bg: "#07090d",
@@ -194,6 +195,7 @@ export default function MobileHexagon({
                 className={`mobile-hexagon__seat ${SEAT_POSITIONS[index] || "top-seat"}${active && isRevealed ? " is-selected" : ""}${isRevealed ? "" : " is-pending"}`}
               >
                 <span className="mobile-hexagon__seat-state" style={{ color, backgroundColor: color }} />
+                {isRevealed && <SeatIcon id={seat.id as SeatIconId} style={{ width: 14, height: 14, color: COLORS.ink }} />}
                 <span className="mobile-hexagon__seat-label">{isRevealed ? seatLabel(seat) : "STANDBY"}</span>
               </button>
             );
@@ -208,7 +210,9 @@ export default function MobileHexagon({
 
         <section className="mobile-hexagon__briefing" aria-live="polite">
           <div className="mobile-hexagon__briefing-header">
-            <VerdictMark verdict={agent.verdict} /> {seatLabel(agent)} · {agent.verdict}
+            <VerdictMark verdict={agent.verdict} />
+            <SeatIcon id={agent.id as SeatIconId} style={{ width: 13, height: 13, color: COLORS.cyan, flexShrink: 0 }} />
+            {seatLabel(agent)} · {agent.verdict}
             {isSandbox && <button type="button" onClick={replayCouncil} className="mobile-hexagon__replay">{replaying ? "Convene" : "Replay council"}</button>}
           </div>
           <p>{agent.text}</p>

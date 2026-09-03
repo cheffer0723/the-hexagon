@@ -1,13 +1,15 @@
+import { SeatIcon } from "./seatIcons";
+
 const ACID = "#d7ff3f";
 const MONO = "ui-monospace, SFMono-Regular, Menlo, monospace";
 
 const ROLES = [
-  { n: "01", name: "AEGIS", cls: "role-1", pos: { top: "2%", left: "50%", transform: "translateX(-50%)" } },
-  { n: "02", name: "THE ARCHON", cls: "role-2", pos: { top: "26%", right: "-7%" } },
-  { n: "03", name: "THE PSYOPS AGENT", cls: "role-3", pos: { bottom: "22%", right: "-9%" } },
-  { n: "04", name: "THE HERETIC", cls: "role-4", pos: { bottom: "2%", left: "50%", transform: "translateX(-50%)" } },
-  { n: "05", name: "CERBERUS", cls: "role-5", pos: { bottom: "22%", left: "-5%" } },
-  { n: "06", name: "THE SENTINEL", cls: "role-6", pos: { top: "26%", left: "-10%" } },
+  { id: "risk_manager", n: "01", name: "AEGIS", cls: "role-1", pos: { top: "2%", left: "50%", transform: "translateX(-50%)" } },
+  { id: "quant", n: "02", name: "THE ARCHON", cls: "role-2", pos: { top: "26%", right: "-7%" } },
+  { id: "behavioral", n: "03", name: "THE PSYOPS AGENT", cls: "role-3", pos: { bottom: "22%", right: "-9%" } },
+  { id: "contrarian", n: "04", name: "THE HERETIC", cls: "role-4", pos: { bottom: "2%", left: "50%", transform: "translateX(-50%)" } },
+  { id: "regime", n: "05", name: "CERBERUS", cls: "role-5", pos: { bottom: "22%", left: "-5%" } },
+  { id: "devils_advocate", n: "06", name: "THE SENTINEL", cls: "role-6", pos: { top: "26%", left: "-10%" } },
 ] as const;
 
 export default function OrbitDiagram() {
@@ -44,12 +46,14 @@ export default function OrbitDiagram() {
           className={`absolute ${role.cls}`}
           style={{
             ...role.pos,
+            display: "flex", alignItems: "center", gap: 7,
             fontFamily: MONO, fontWeight: 700, fontSize: "clamp(.58rem,1vw,.72rem)", lineHeight: 1,
             letterSpacing: "0.08em", whiteSpace: "nowrap",
             background: "#111315", border: "1px solid #34373a", padding: "8px 11px",
           }}
         >
-          <span style={{ color: ACID, marginRight: 8 }}>{role.n}</span>
+          <SeatIcon id={role.id} style={{ width: 12, height: 12, color: ACID, flexShrink: 0 }} />
+          <span style={{ color: ACID, marginRight: 2 }}>{role.n}</span>
           {role.name}
         </div>
       ))}
