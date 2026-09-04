@@ -425,7 +425,7 @@ function buildCaseCardText(review: HexagonReview, majorityVerdict: AgentVerdict,
     `Majority (${majorityVerdict}): ${verdict.summary}`,
     dissenter ? `Dissent — ${dissenter.name}: ${dissenter.text}` : "Unanimous — no dissent filed.",
     "",
-    "instance6.xyz — educational analysis, not investment advice",
+    "syntheticsix.com — educational analysis, not investment advice",
   ].join("\n");
 }
 
@@ -508,7 +508,7 @@ function CaseCard({
           {copied ? "Copied ✓" : "Copy case card ↓"}
         </button>
         <div className="text-center mt-2.5 text-[8.5px] uppercase tracking-widest" style={{ color: COLORS.steel }}>
-          instance6.xyz · Educational analysis, not investment advice
+          syntheticsix.com · Educational analysis, not investment advice
         </div>
       </div>
     </div>

@@ -38,22 +38,23 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
       <style>{`@keyframes hxPulse { 50% { opacity: .5; } }`}</style>
 
       <nav
-        className="flex items-center justify-between"
-        style={{ height: 82, padding: "0 clamp(24px,5vw,80px)", borderBottom: "1px solid #2a2c2f" }}
+        className="relative flex items-center justify-between overflow-hidden"
+        style={{ minHeight: 92, padding: "12px clamp(24px,5vw,80px)", borderBottom: "1px solid #25333a", background: "linear-gradient(90deg, #080b10 0%, #0b1017 52%, #080b10 100%)" }}
       >
-        <a href="#top" className="flex items-center gap-3" style={{ letterSpacing: "0.16em", fontSize: "0.8rem", fontWeight: 800 }}>
-          <svg aria-hidden="true" width="25" height="28" viewBox="0 0 32 36" style={{ flexShrink: 0, display: "block" }}>
-            <polygon points="16,0 30.4,9 30.4,27 16,36 1.6,27 1.6,9" fill="none" stroke={ACID} strokeWidth="1.6" />
-            <polygon points="16,8.1 23.92,13.05 23.92,22.95 16,27.9 8.08,22.95 8.08,13.05" fill="none" stroke={ACID} strokeWidth="1.1" opacity="0.6" />
-            <polygon points="16,13 22.5,15.5 16,18 9.5,15.5" fill={ACID} opacity="0.95" />
-            <polygon points="9.5,15.5 16,18 16,25.5 9.5,23" fill={ACID} opacity="0.55" />
-            <polygon points="16,18 22.5,15.5 22.5,23 16,25.5" fill={ACID} opacity="0.75" />
-            <polygon points="16,26.8 18.2,27.65 16,28.5 13.8,27.65" fill={ACID} opacity="0.85" />
-            <polygon points="13.8,27.65 16,28.5 16,31 13.8,30.15" fill={ACID} opacity="0.5" />
-            <polygon points="16,28.5 18.2,27.65 18.2,30.15 16,31" fill={ACID} opacity="0.65" />
-          </svg>
-          <span>THE HEXAGON</span>
+        <div aria-hidden="true" className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(45,212,191,.06) 48%, transparent 100%)" }} />
+        <a href="#top" className="relative flex items-center gap-3" style={{ color: "#f1efe8", textDecoration: "none" }}>
+          <span className="overflow-hidden border" style={{ width: 54, height: 54, borderColor: "#356075", background: "#11161d", boxShadow: "0 0 24px rgba(31,173,255,.18)", flexShrink: 0 }}>
+            <img src="/hexagon-header-mark.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
+          </span>
+          <span>
+            <span className="block" style={{ letterSpacing: "0.18em", fontSize: "0.82rem", fontWeight: 900 }}>THE HEXAGON</span>
+            <span className="mt-1 block" style={{ color: ACID, fontFamily: MONO, letterSpacing: "0.16em", fontSize: "0.6rem", fontWeight: 700 }}>TRADE REVIEW COUNCIL</span>
+          </span>
         </a>
+        <div className="relative hidden items-center gap-3 sm:flex" style={{ color: "#85898c", fontFamily: MONO, fontSize: "0.62rem", fontWeight: 700, letterSpacing: "0.14em" }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: ACID, boxShadow: `0 0 12px ${ACID}` }} />
+          FORENSIC TRADE REVIEW
+        </div>
       </nav>
 
       <section
@@ -223,16 +224,33 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
       </section>
 
       <footer
-        className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between"
-        style={{ borderTop: "1px solid #2a2c2f", padding: "50px clamp(24px,8vw,128px)" }}
+        id="footer"
+        className="relative flex flex-col items-start gap-7 overflow-hidden sm:flex-row sm:items-center sm:justify-between"
+        style={{ minHeight: 210, borderTop: "1px solid #25333a", padding: "50px clamp(24px,8vw,128px)", background: "#050607" }}
       >
-        <div>
-          <p style={{ letterSpacing: "-0.03em", color: ACID, margin: 0, fontSize: "clamp(1.8rem,5vw,4rem)", fontWeight: 900 }}>THE HEXAGON</p>
-          <small style={{ color: "#666b6e", fontFamily: MONO, fontWeight: 700, fontSize: "0.68rem", letterSpacing: "0.2em", marginTop: 8, display: "block" }}>
-            INSTANCE6.XYZ
-          </small>
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(90deg, rgba(5,6,7,.98) 0%, rgba(5,6,7,.88) 52%, rgba(5,6,7,.66) 100%), url('/hexagon-footer-mark.jpg')",
+            backgroundPosition: "center, right 8% center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover, 270px auto",
+            opacity: 0.92,
+          }}
+        />
+        <div className="relative flex items-center gap-4">
+          <span className="overflow-hidden border" style={{ width: 58, height: 58, borderColor: "#335b70", background: "#080b0f", flexShrink: 0 }}>
+            <img src="/hexagon-footer-mark.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 51%", display: "block" }} />
+          </span>
+          <div>
+            <p style={{ letterSpacing: "-0.03em", color: ACID, margin: 0, fontSize: "clamp(1.8rem,4vw,3.3rem)", fontWeight: 900 }}>THE HEXAGON</p>
+            <small style={{ color: "#8c959a", fontFamily: MONO, fontWeight: 700, fontSize: "0.66rem", letterSpacing: "0.16em", marginTop: 8, display: "block" }}>
+              SYNTHETICSIX.COM · TRADE REVIEW COUNCIL
+            </small>
+          </div>
         </div>
-        <span style={{ fontFamily: MONO, fontWeight: 700, fontSize: "0.68rem", lineHeight: 1.5, letterSpacing: "0.14em", color: "#777b7d", textAlign: "right" }}>
+        <span className="relative" style={{ fontFamily: MONO, fontWeight: 700, fontSize: "0.68rem", lineHeight: 1.6, letterSpacing: "0.14em", color: "#a1a8ab", textAlign: "right" }}>
           BUILT FOR TRADERS WHO WANT THE TRUTH.
           <br />
           Educational analysis, not investment advice.
