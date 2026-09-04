@@ -6,7 +6,9 @@ import { SeatIcon } from "@/components/hexagon/seatIcons";
 import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
 import type { HexagonReview } from "@/components/hexagon/sample";
 
-const API_BASE_URL = (import.meta.env.VITE_HEXAGON_API_BASE_URL || "").replace(/\/+$/, "");
+const API_BASE_URL = (
+  import.meta.env.VITE_HEXAGON_API_BASE_URL || "https://hexagon-api-production.up.railway.app"
+).replace(/\/+$/, "");
 
 const CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";
 
