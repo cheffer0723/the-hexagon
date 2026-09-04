@@ -43,8 +43,8 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
       >
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(45,212,191,.06) 48%, transparent 100%)" }} />
         <a href="#top" className="relative flex items-center gap-3" style={{ color: "#f1efe8", textDecoration: "none" }}>
-          <span className="overflow-hidden border" style={{ width: 54, height: 54, borderColor: "#356075", background: "#11161d", boxShadow: "0 0 24px rgba(31,173,255,.18)", flexShrink: 0 }}>
-            <img src="/hexagon-header-mark.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} />
+          <span className="flex items-center justify-center border" style={{ width: 54, height: 54, borderColor: "#356075", background: "#081018", boxShadow: "0 0 24px rgba(31,173,255,.18)", flexShrink: 0 }}>
+            <img src="/hexagon-flat-mark-transparent.png" alt="" style={{ width: "86%", height: "86%", objectFit: "contain", display: "block" }} />
           </span>
           <span>
             <span className="block" style={{ letterSpacing: "0.18em", fontSize: "0.82rem", fontWeight: 900 }}>THE HEXAGON</span>
