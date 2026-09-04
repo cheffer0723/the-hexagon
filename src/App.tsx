@@ -2,7 +2,6 @@ import { ChangeEvent, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
 import OrbitDiagram from "@/components/hexagon/OrbitDiagram";
-import TeaserScene from "@/components/hexagon/TeaserScene";
 import { SeatIcon } from "@/components/hexagon/seatIcons";
 import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sandbox";
 import type { HexagonReview } from "@/components/hexagon/sample";
@@ -146,8 +145,26 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
             </div>
           </div>
 
-          <div className="order-1 relative h-[340px] overflow-hidden border sm:h-[420px] lg:order-2 lg:h-[560px]" style={{ borderColor: "#2a2c2f", backgroundColor: "#07090d" }}>
-            <TeaserScene />
+          <div
+            className="order-1 relative h-[340px] overflow-hidden border sm:h-[420px] lg:order-2 lg:h-[560px]"
+            style={{
+              borderColor: "#2a2c2f",
+              backgroundColor: "#07090d",
+              backgroundImage: "linear-gradient(180deg, rgba(5,7,12,.08), rgba(5,7,12,.38)), url('/hexagon-glass-mark.jpg')",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundSize: "cover",
+            }}
+            role="img"
+            aria-label="Blue glass hexagon mark"
+          >
+            <div
+              aria-hidden="true"
+              className="absolute inset-0"
+              style={{
+                background: "radial-gradient(ellipse at center, transparent 20%, rgba(5,7,12,.16) 72%, rgba(5,7,12,.58) 100%)",
+              }}
+            />
           </div>
         </div>
       </section>
