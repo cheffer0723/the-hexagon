@@ -37,9 +37,26 @@ const ROLES: Agent[] = [
   { id: "devils_advocate", name: "The Sentinel — Defense", lens: "the strongest honest defense of the trade, including constraints not present in the CSV" },
 ];
 
+// Keep the current configured origin during the custom-domain migration, while
+// serving the canonical site and www alias. CORS is browser policy only; it is
+// deliberately not presented as authorization for the review endpoint.
+const configuredCorsOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const allowedCorsOrigins = new Set([
+  "https://syntheticsix.com",
+  "https://www.syntheticsix.com",
+  ...configuredCorsOrigins,
+]);
+
 const app = express();
 app.disable("x-powered-by");
-app.use(cors({ origin: process.env.CORS_ORIGIN || true }));
+app.use(cors({
+  origin(origin, callback) {
+    callback(null, !origin || allowedCorsOrigins.has(origin));
+  },
+}));
 app.use(express.json({ limit: "1mb" }));
 
 app.get("/healthz", (_req, res) => {

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 
-const apiBase = (process.env.HEXAGON_API_URL || "https://hexagon-api-production.up.railway.app").replace(/\/+$/, "");
-const webUrl = process.env.HEXAGON_WEB_URL || "https://cheffer0723.github.io/the-hexagon/";
+const apiBase = (process.env.HEXAGON_API_URL || "https://api.instance6.xyz").replace(/\/+$/, "");
+const webUrl = process.env.HEXAGON_WEB_URL || "https://syntheticsix.com/";
 
 async function request(url, options) {
   const response = await fetch(url, options);

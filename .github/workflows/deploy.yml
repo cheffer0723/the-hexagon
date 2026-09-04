@@ -26,7 +26,7 @@ jobs:
       - run: npm run build
         env:
           # The canonical deployment is the apex custom domain. Keep asset URLs
-          # rooted at / so instance6.xyz serves the built bundle correctly.
+          # rooted at / so syntheticsix.com serves the built bundle correctly.
           BASE_PATH: /
           VITE_HEXAGON_API_BASE_URL: ${{ vars.HEXAGON_API_BASE_URL }}
       - uses: actions/upload-pages-artifact@v3

@@ -56,7 +56,7 @@ function hexPerimeter(v: [number, number][]): number {
 // ── 3D wireframe hexagonal table (perspective / low-angle side view) ──
 // Top face is a foreshortened hexagon (ry < rx simulates the tilt); the body
 // is extruded straight down by `depth`, with short legs at the outer corners.
-const TBL = { cx: 50, cy: 43, rx: 34, ry: 16, depth: 9, leg: 13 };
+const TBL = { cx: 50, cy: 43, rx: 34, ry: 16, depth: 7, leg: 10 };
 const HEX_TOP: [number, number][] = [
   [TBL.cx + TBL.rx,     TBL.cy          ], // 0 right
   [TBL.cx + TBL.rx / 2, TBL.cy - TBL.ry ], // 1 upper-right (far)
@@ -76,9 +76,11 @@ const BOT_FRONT_PATH =
   `L ${HEX_BOT[5][0]} ${HEX_BOT[5][1]} ` +
   `L ${HEX_BOT[0][0]} ${HEX_BOT[0][1]}`;
 
+// Seats live well outside the rim. Keeping their anchor at the table corner
+// made the old struts read like malformed chairs rather than a council.
 const SEAT_POS = HEX_TOP.map(([x, y]) => {
   const dx = x - TBL.cx, dy = y - TBL.cy;
-  return { x: TBL.cx + dx * 1.14, y: TBL.cy + dy * 1.14 };
+  return { x: TBL.cx + dx * 1.48, y: TBL.cy + dy * 1.48 };
 });
 
 // Agent index → seat vertex index, so left-column agents (0,2,4) get the
@@ -189,6 +191,30 @@ function SeatedFigure({ id, color, active }: { id: SeatIconId; color: string; ac
       id={id}
       style={{ width: 15, height: 15, flexShrink: 0, color, filter: active ? `drop-shadow(0 0 6px ${color})` : "none", transition: "filter 300ms" }}
     />
+  );
+}
+
+function CouncilChair({
+  x, y, state, color,
+}: {
+  x: number;
+  y: number;
+  state: SeatState;
+  color: string;
+}) {
+  const isLive = state !== "idle";
+  const opacity = state === "active" ? 1 : state === "resolved" ? 0.86 : 0.58;
+
+  return (
+    <g transform={`translate(${x} ${y})`} opacity={opacity}>
+      {/* Deliberately front-facing: at this scale, rotated line art read as a
+          broken diamond. A high back, arms, cushion, and legs read as chairs. */}
+      <path d="M -4.4 -8.1 L 4.4 -8.1 L 5.15 -1.25 L -5.15 -1.25 Z" fill={`${color}14`} stroke={color} strokeWidth="0.78" strokeLinejoin="round" />
+      <path d="M -5.2 -1.25 L 5.2 -1.25 L 4.15 2.65 L -4.15 2.65 Z" fill={`${color}22`} stroke={color} strokeWidth="0.84" strokeLinejoin="round" />
+      <path d="M -6.3 -2.15 L -6.3 3.35 L -4.45 3.35 M 6.3 -2.15 L 6.3 3.35 L 4.45 3.35" fill="none" stroke={color} strokeWidth="0.76" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M -4.1 2.7 L -4.8 7.6 M 4.1 2.7 L 4.8 7.6 M -3.05 -6.55 H 3.05 M -3.35 -4.45 H 3.35" fill="none" stroke={color} strokeWidth="0.55" strokeLinecap="round" />
+      {isLive && <circle cx="0" cy="0" r="1.05" fill={color} opacity="0.9" />}
+    </g>
   );
 }
 
@@ -1061,13 +1087,13 @@ export default function Hexagon({
 
             <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full" style={{ overflow:"visible" }}>
 
-              {/* Legs (front / outer corners) */}
+              {/* Table legs stay understated; seating is rendered separately below. */}
               {FRONT_IDX.map((i) => (
                 <line key={`leg${i}`}
                   x1={HEX_BOT[i][0]} y1={HEX_BOT[i][1]}
                   x2={HEX_BOT[i][0]} y2={HEX_BOT[i][1] + TBL.leg}
-                  stroke={COLORS.cyan} strokeWidth="1.4" strokeLinecap="round"
-                  opacity={phase==="deliberating" ? 0.34 : 0.22}
+                  stroke={COLORS.cyan} strokeWidth="0.9" strokeLinecap="round"
+                  opacity={phase==="deliberating" ? 0.3 : 0.16}
                   style={{ transition:"opacity 500ms" }}
                 />
               ))}
@@ -1128,26 +1154,23 @@ export default function Hexagon({
                 />
               )}
 
-              {/* Seat markers at each vertex */}
+              {/* Six outward-facing council chairs — one per reviewer. */}
               {SEAT_ORDER.map((seatIdx, i) => {
                 const pos = SEAT_POS[seatIdx];
                 const s = seatStates[i];
                 const color = s === "resolved"
                   ? (agents[i].verdict === "mistake" ? COLORS.red : COLORS.green)
-                  : s === "active" ? COLORS.cyan : COLORS.border;
-                const diamond = (r: number) =>
-                  `M ${pos.x} ${pos.y - r} L ${pos.x + r} ${pos.y} L ${pos.x} ${pos.y + r} L ${pos.x - r} ${pos.y} Z`;
+                  : s === "active" ? COLORS.cyan : "#2c7f8f";
                 return (
                   <g key={i}>
+                    <CouncilChair x={pos.x} y={pos.y} state={s} color={color} />
                     {s === "active" && (
-                      <path d={diamond(3.6)} fill="none" stroke={color} strokeWidth="0.4" opacity="0.5"
+                      <circle cx={pos.x} cy={pos.y} r="7.6" fill="none" stroke={color} strokeWidth="0.38" opacity="0.52"
                         style={{
                           animation:`seatDotZ${uid} 0.9s ease-in-out infinite`,
                           transformBox:"fill-box", transformOrigin:"center",
                         }} />
                     )}
-                    <path d={diamond(s === "active" ? 2.4 : 1.8)} fill={color}
-                      style={{ transition:"fill 300ms" }} />
                   </g>
                 );
               })}
