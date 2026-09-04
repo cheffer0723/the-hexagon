@@ -63,6 +63,18 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
         style={{ minHeight: "calc(100vh - 82px)", padding: "clamp(60px,10vh,110px) clamp(24px,8vw,128px)" }}
       >
         <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: "linear-gradient(90deg, rgba(9,10,12,.94) 0%, rgba(9,10,12,.76) 48%, rgba(9,10,12,.88) 100%), url('/council-network-background.jpg')",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            filter: "saturate(1.05) contrast(1.08)",
+            opacity: 0.22,
+          }}
+        />
+        <div
           className="absolute hidden sm:flex items-center"
           style={{ top: 42, right: "clamp(24px,8vw,128px)", color: "#85898c", fontFamily: MONO, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.14em" }}
         >
@@ -70,7 +82,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           {API_BASE_URL ? "COUNCIL ONLINE" : "SYSTEM IN FORMATION"}
         </div>
 
-        <div className="grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
+        <div className="relative grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
           <div className="order-2 lg:order-1">
             <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
               Six perspectives. One forensic verdict.
