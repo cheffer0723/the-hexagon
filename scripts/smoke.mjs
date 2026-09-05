@@ -61,7 +61,7 @@ assert.ok(bundlePath, "Hexagon web page must reference a built JavaScript bundle
 const bundleUrl = new URL(bundlePath, webUrl).toString();
 const bundle = await request(bundleUrl);
 assert.equal(bundle.response.status, 200, `Hexagon bundle failed: ${bundle.body.slice(0, 200)}`);
-assert.match(bundle.body, new RegExp(apiHost.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Served bundle must contain ${apiHost}`);
+assert.ok(bundle.body.includes(apiHost), `Served bundle ${bundlePath} must contain ${apiHost}`);
 
 const wwwPage = await request("https://www.syntheticsix.com/");
 assert.equal(wwwPage.response.status, 200, `Hexagon www page failed: ${wwwPage.body.slice(0, 200)}`);
