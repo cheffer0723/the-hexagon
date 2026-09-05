@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 const apiBase = (process.env.HEXAGON_API_URL || "https://api.instance6.xyz").replace(/\/+$/, "");
 const webUrl = process.env.HEXAGON_WEB_URL || "https://syntheticsix.com/";
 const canonicalOrigin = "https://syntheticsix.com";
+const allowedOrigins = [canonicalOrigin, "https://www.syntheticsix.com"];
 
 assert.match(apiBase, /^https:\/\//, "Hexagon API must be served over HTTPS");
 
@@ -27,20 +28,22 @@ assert.deepEqual(
   "Hexagon must expose the approved council names",
 );
 
-const corsPreflight = await request(`${apiBase}/v1/reviews`, {
-  method: "OPTIONS",
-  headers: {
-    origin: canonicalOrigin,
-    "access-control-request-method": "POST",
-    "access-control-request-headers": "content-type",
-  },
-});
-assert.equal(corsPreflight.response.status, 204, `CORS preflight failed: ${corsPreflight.body}`);
-assert.equal(
-  corsPreflight.response.headers.get("access-control-allow-origin"),
-  canonicalOrigin,
-  "Hexagon API must allow the canonical frontend origin",
-);
+for (const origin of allowedOrigins) {
+  const corsPreflight = await request(`${apiBase}/v1/reviews`, {
+    method: "OPTIONS",
+    headers: {
+      origin,
+      "access-control-request-method": "POST",
+      "access-control-request-headers": "content-type",
+    },
+  });
+  assert.equal(corsPreflight.response.status, 204, `CORS preflight failed for ${origin}: ${corsPreflight.body}`);
+  assert.equal(
+    corsPreflight.response.headers.get("access-control-allow-origin"),
+    origin,
+    `Hexagon API must allow frontend origin ${origin}`,
+  );
+}
 
 const invalidReview = await request(`${apiBase}/v1/reviews`, {
   method: "POST",
@@ -53,11 +56,15 @@ const page = await request(webUrl);
 assert.equal(page.response.status, 200, `Hexagon web page failed: ${page.body.slice(0, 200)}`);
 assert.match(page.body, /The Hexagon/i, "Hexagon web page must render the product copy");
 
+const wwwPage = await request("https://www.syntheticsix.com/");
+assert.equal(wwwPage.response.status, 200, `Hexagon www page failed: ${wwwPage.body.slice(0, 200)}`);
+assert.match(wwwPage.body, /The Hexagon/i, "Hexagon www page must render the product copy");
+
 console.log(
   JSON.stringify({
     ok: true,
     apiBase,
     webUrl,
-    checks: ["health", "status", "cors-preflight", "invalid-csv", "web"],
+    checks: ["health", "status", "cors-preflight", "invalid-csv", "web", "www-web"],
   }),
 );

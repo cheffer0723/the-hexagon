@@ -24,11 +24,16 @@ Hexagon API URL at build time:
 VITE_HEXAGON_API_BASE_URL=https://your-api.example.com npm run dev
 ```
 
-## Deploy (GitHub Pages)
+## Deploy
 
-Pushing to `main` builds and deploys via `.github/workflows/deploy.yml`.
-For a project page served under a subpath, the workflow sets `BASE_PATH`
-accordingly. For a root/custom domain, leave `BASE_PATH` unset (defaults to `/`).
+The customer-facing hostname is `https://syntheticsix.com`. Current public DNS
+is served through Cloudflare, with `www.syntheticsix.com` pointing at
+`the-hexagon.pages.dev`.
+
+Pushing to `main` also builds the static artifact via
+`.github/workflows/deploy.yml`. For a project page served under a subpath, the
+workflow sets `BASE_PATH` accordingly. For a root/custom domain, leave
+`BASE_PATH` unset (defaults to `/`).
 
 See [docs/beta-production-runbook.md](docs/beta-production-runbook.md) for the
 no-charge production checks and the paid-review approval boundary.
