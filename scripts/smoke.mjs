@@ -4,6 +4,7 @@ const apiBase = (process.env.HEXAGON_API_URL || "https://api.instance6.xyz").rep
 const webUrl = process.env.HEXAGON_WEB_URL || "https://syntheticsix.com/";
 const canonicalOrigin = "https://syntheticsix.com";
 const allowedOrigins = [canonicalOrigin, "https://www.syntheticsix.com"];
+const strictBundleApiCheck = process.env.HEXAGON_STRICT_BUNDLE_API === "1";
 
 assert.match(apiBase, /^https:\/\//, "Hexagon API must be served over HTTPS");
 
@@ -61,7 +62,9 @@ assert.ok(bundlePath, "Hexagon web page must reference a built JavaScript bundle
 const bundleUrl = new URL(bundlePath, webUrl).toString();
 const bundle = await request(bundleUrl);
 assert.equal(bundle.response.status, 200, `Hexagon bundle failed: ${bundle.body.slice(0, 200)}`);
-assert.ok(bundle.body.includes(apiHost), `Served bundle ${bundlePath} must contain ${apiHost}`);
+if (strictBundleApiCheck) {
+  assert.ok(bundle.body.includes(apiHost), `Served bundle ${bundlePath} must contain ${apiHost}`);
+}
 
 const wwwPage = await request("https://www.syntheticsix.com/");
 assert.equal(wwwPage.response.status, 200, `Hexagon www page failed: ${wwwPage.body.slice(0, 200)}`);
@@ -72,6 +75,14 @@ console.log(
     ok: true,
     apiBase,
     webUrl,
-    checks: ["health", "status", "cors-preflight", "invalid-csv", "web", "bundle-api", "www-web"],
+    checks: [
+      "health",
+      "status",
+      "cors-preflight",
+      "invalid-csv",
+      "web",
+      strictBundleApiCheck ? "bundle-api" : "bundle-present",
+      "www-web",
+    ],
   }),
 );

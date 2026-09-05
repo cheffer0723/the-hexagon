@@ -23,6 +23,7 @@ npm run typecheck
 npm run build
 npm --prefix api run build
 npm run smoke
+HEXAGON_STRICT_BUNDLE_API=1 npm run smoke
 ```
 
 The smoke script verifies:
@@ -33,7 +34,8 @@ The smoke script verifies:
 - canonical frontend CORS preflight
 - invalid CSV rejection before any OpenAI request
 - public apex and `www` web availability
-- served JavaScript bundle contains the configured API host
+- served JavaScript bundle is present
+- strict mode verifies the served JavaScript bundle contains the configured API host
 
 It intentionally does not run a real review, because a real review makes six OpenAI Responses API calls.
 
