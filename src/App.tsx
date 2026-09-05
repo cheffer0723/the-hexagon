@@ -7,7 +7,7 @@ import { SANDBOX_SCENARIOS, type SandboxScenario } from "@/components/hexagon/sa
 import type { HexagonReview } from "@/components/hexagon/sample";
 
 const API_BASE_URL = (
-  import.meta.env.VITE_HEXAGON_API_BASE_URL || "https://hexagon-api-production.up.railway.app"
+  import.meta.env.VITE_HEXAGON_API_BASE_URL || "https://api.instance6.xyz"
 ).replace(/\/+$/, "");
 
 const CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";

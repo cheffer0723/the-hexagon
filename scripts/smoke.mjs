@@ -55,6 +55,13 @@ assert.equal(invalidReview.response.status, 400, "Invalid CSV must fail before a
 const page = await request(webUrl);
 assert.equal(page.response.status, 200, `Hexagon web page failed: ${page.body.slice(0, 200)}`);
 assert.match(page.body, /The Hexagon/i, "Hexagon web page must render the product copy");
+const apiHost = new URL(apiBase).host;
+const bundlePath = page.body.match(/assets\/index-[^"']+\.js/)?.[0];
+assert.ok(bundlePath, "Hexagon web page must reference a built JavaScript bundle");
+const bundleUrl = new URL(bundlePath, webUrl).toString();
+const bundle = await request(bundleUrl);
+assert.equal(bundle.response.status, 200, `Hexagon bundle failed: ${bundle.body.slice(0, 200)}`);
+assert.match(bundle.body, new RegExp(apiHost.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), `Served bundle must contain ${apiHost}`);
 
 const wwwPage = await request("https://www.syntheticsix.com/");
 assert.equal(wwwPage.response.status, 200, `Hexagon www page failed: ${wwwPage.body.slice(0, 200)}`);
@@ -65,6 +72,6 @@ console.log(
     ok: true,
     apiBase,
     webUrl,
-    checks: ["health", "status", "cors-preflight", "invalid-csv", "web", "www-web"],
+    checks: ["health", "status", "cors-preflight", "invalid-csv", "web", "bundle-api", "www-web"],
   }),
 );

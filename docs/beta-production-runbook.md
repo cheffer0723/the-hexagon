@@ -33,6 +33,7 @@ The smoke script verifies:
 - canonical frontend CORS preflight
 - invalid CSV rejection before any OpenAI request
 - public apex and `www` web availability
+- served JavaScript bundle contains the configured API host
 
 It intentionally does not run a real review, because a real review makes six OpenAI Responses API calls.
 
