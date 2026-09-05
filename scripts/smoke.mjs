@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 
 const apiBase = (process.env.HEXAGON_API_URL || "https://api.instance6.xyz").replace(/\/+$/, "");
 const webUrl = process.env.HEXAGON_WEB_URL || "https://syntheticsix.com/";
+const canonicalOrigin = "https://syntheticsix.com";
+
+assert.match(apiBase, /^https:\/\//, "Hexagon API must be served over HTTPS");
 
 async function request(url, options) {
   const response = await fetch(url, options);
@@ -24,14 +27,37 @@ assert.deepEqual(
   "Hexagon must expose the approved council names",
 );
 
+const corsPreflight = await request(`${apiBase}/v1/reviews`, {
+  method: "OPTIONS",
+  headers: {
+    origin: canonicalOrigin,
+    "access-control-request-method": "POST",
+    "access-control-request-headers": "content-type",
+  },
+});
+assert.equal(corsPreflight.response.status, 204, `CORS preflight failed: ${corsPreflight.body}`);
+assert.equal(
+  corsPreflight.response.headers.get("access-control-allow-origin"),
+  canonicalOrigin,
+  "Hexagon API must allow the canonical frontend origin",
+);
+
 const invalidReview = await request(`${apiBase}/v1/reviews`, {
   method: "POST",
-  headers: { "content-type": "application/json" },
+  headers: { "content-type": "application/json", origin: canonicalOrigin },
   body: JSON.stringify({ csv: "symbol,entry_date\nSPY,2026-01-01" }),
 });
 assert.equal(invalidReview.response.status, 400, "Invalid CSV must fail before an OpenAI request");
 
 const page = await request(webUrl);
 assert.equal(page.response.status, 200, `Hexagon web page failed: ${page.body.slice(0, 200)}`);
+assert.match(page.body, /The Hexagon/i, "Hexagon web page must render the product copy");
 
-console.log(JSON.stringify({ ok: true, apiBase, webUrl, checks: ["health", "status", "invalid-csv", "web"] }));
+console.log(
+  JSON.stringify({
+    ok: true,
+    apiBase,
+    webUrl,
+    checks: ["health", "status", "cors-preflight", "invalid-csv", "web"],
+  }),
+);

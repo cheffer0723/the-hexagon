@@ -30,6 +30,9 @@ Pushing to `main` builds and deploys via `.github/workflows/deploy.yml`.
 For a project page served under a subpath, the workflow sets `BASE_PATH`
 accordingly. For a root/custom domain, leave `BASE_PATH` unset (defaults to `/`).
 
+See [docs/beta-production-runbook.md](docs/beta-production-runbook.md) for the
+no-charge production checks and the paid-review approval boundary.
+
 ## Stack
 
 Vite 7 · React 19 · TypeScript 5.9 · Tailwind 4. No router, no UI library —
