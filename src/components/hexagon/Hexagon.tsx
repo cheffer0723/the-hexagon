@@ -255,8 +255,8 @@ function AgentCard({
   const bodyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [thinkingText]);
+    if (bodyRef.current) bodyRef.current.scrollTop = isResolved ? 0 : bodyRef.current.scrollHeight;
+  }, [thinkingText, isResolved]);
 
   return (
     <div
@@ -354,7 +354,7 @@ function AgentCard({
               transition: "color 400ms",
             }}
           >
-            {thinkingText}
+            {isResolved ? thinkingSource : thinkingText}
             {isActive && thinkingText.length < thinkingSource.length && (
               <span style={{ opacity: Math.sin(Date.now() / 300) > 0 ? 1 : 0 }}>▌</span>
             )}
