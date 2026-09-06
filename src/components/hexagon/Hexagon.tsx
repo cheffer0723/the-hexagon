@@ -264,7 +264,7 @@ function AgentCard({
       className="flex flex-col rounded-lg overflow-hidden transition-all duration-300"
       style={{
         flex: "1 1 0",
-        minHeight: 0,
+        minHeight: 220,
         backgroundColor: COLORS.panel,
         border: `2px solid ${isActive ? COLORS.cyan : isResolved ? `${verdictColor}66` : COLORS.border}`,
         boxShadow: isActive
@@ -303,7 +303,7 @@ function AgentCard({
         }} />
         <SeatedFigure id={agent.id as SeatIconId} color={figColor} active={isActive} />
         <span
-          className="text-[10px] font-semibold flex-1 truncate"
+          className="text-[12px] font-semibold flex-1"
           style={{
             color: isLive ? COLORS.ink : COLORS.steel,
             textAlign: align === "right" ? "right" : "left",
@@ -347,7 +347,7 @@ function AgentCard({
       >
         {shouldType ? (
           <p
-            className="text-[8px] leading-relaxed whitespace-pre-wrap"
+            className="text-[13px] leading-relaxed whitespace-pre-wrap"
             style={{
               fontFamily: "'JetBrains Mono', 'Share Tech Mono', 'Courier New', monospace",
               color: isResolved ? COLORS.steel : COLORS.cyan,
@@ -837,7 +837,7 @@ export default function Hexagon({
             fontFamily: "'JetBrains Mono', monospace", fontSize: 8.5, letterSpacing: "0.5em",
             color: `${COLORS.steel}cc`, textTransform: "uppercase",
           }}>
-            Obsidian&nbsp;Abyss&nbsp;//&nbsp;Deliberation&nbsp;Chamber
+            The&nbsp;Hexagon&nbsp;//&nbsp;Deliberation&nbsp;Chamber
           </span>
           <svg width="14" height="16" viewBox="0 0 14 16" fill="none">
             <path d="M7 0.8 L13.2 4.4 V11.6 L7 15.2 L0.8 11.6 V4.4 Z" stroke={`${COLORS.cyan}88`} strokeWidth="1" />
@@ -1054,7 +1054,7 @@ export default function Hexagon({
         </svg>
 
         {/* LEFT COLUMN */}
-        <div className="flex flex-col gap-3 p-3 flex-shrink-0 relative" style={{ width: 288, zIndex: 1 }}>
+        <div className="flex flex-col gap-3 p-3 flex-shrink-0 relative" style={{ width: "clamp(320px, 27vw, 400px)", zIndex: 1 }}>
           {leftAgents.map((agentIdx) => (
             <AgentCard
               key={agents[agentIdx].id}
@@ -1215,7 +1215,7 @@ export default function Hexagon({
         </div>
 
         {/* RIGHT COLUMN */}
-        <div className="flex flex-col gap-3 p-3 flex-shrink-0 relative" style={{ width: 288, zIndex: 1 }}>
+        <div className="flex flex-col gap-3 p-3 flex-shrink-0 relative" style={{ width: "clamp(320px, 27vw, 400px)", zIndex: 1 }}>
           {isSandbox && sandboxScenario && (
             <div className="border p-3.5" style={{ borderColor: "#1b8da2", backgroundColor: `${COLORS.panelDeep}ee`, boxShadow: "0 0 26px rgba(79,208,224,.14)" }}>
               <p className="text-[9px] font-bold uppercase tracking-[0.18em]" style={{ color: COLORS.cyan }}>Local sandbox · no API call</p>

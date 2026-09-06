@@ -1,7 +1,7 @@
 # The Hexagon
 
 Standalone product for **The Hexagon** — an AI "war-room" trade-review council.
-The visitor uploads a completed-trades CSV; six independent OpenAI reviewer roles
+The visitor uploads a completed-trades CSV; six independent Claude reviewer roles
 (Risk, Quant, Behavioral, Contrarian, Regime, Devil's Advocate) deliberate
 on-screen and return a forensic verdict. The product is separate from Obsidian
 Abyss; it consumes configured engine data without exposing a Hexagon route there.
@@ -48,15 +48,15 @@ the Hexagon renders its own layout with inline styles for color.
 `api/` is the Railway service root for `hexagon-api`. It exposes `GET /healthz`,
 `GET /v1/status`, and `POST /v1/reviews`. It accepts the documented CSV format,
 does not persist uploads, loads engine data from `ENGINE_DATA_URL`, and makes six
-parallel OpenAI Responses API calls using one `OPENAI_API_KEY`.
+parallel Anthropic Messages API calls using one `ANTHROPIC_API_KEY`.
 
 Required Railway variables:
 
 ```text
-OPENAI_API_KEY=...                 # fresh project key; do not commit it
+ANTHROPIC_API_KEY=...              # keep the key in Railway; do not commit it
 ENGINE_DATA_URL=https://.../api/backtests/engines
 CORS_ORIGIN=https://your-frontend-domain
-OPENAI_MODEL=gpt-5-nano            # optional override; cheapest GPT-5 default
+ANTHROPIC_MODEL=claude-haiku-4-5-20251001 # optional; this is the default
 ```
 
 Set Railway's service root directory to `/api`. This repository is now the
@@ -65,3 +65,9 @@ canonical source for the Hexagon experience.
 For the GitHub Pages workflow, add the non-secret repository variable
 `HEXAGON_API_BASE_URL` with the public URL of that Railway service before
 deploying the frontend.
+
+The status endpoint reports configuration, not a successful provider call.
+The frontend labels it "API CONFIGURED" until an actual review completes.
+Each reviewer has a 600-token output cap and a 60-second request timeout.
+Run `npm --prefix api run build` and `node scripts/test-anthropic.mjs` to test
+the six-seat integration and provider error handling without paid API calls.

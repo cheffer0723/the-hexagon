@@ -21,7 +21,8 @@ assert.equal(JSON.parse(health.body).ok, true, "Hexagon health payload must be o
 const status = await request(`${apiBase}/v1/status`);
 assert.equal(status.response.status, 200, `Hexagon status check failed: ${status.body}`);
 const statusBody = JSON.parse(status.body);
-assert.equal(statusBody.ready, true, "Hexagon must be configured with OpenAI and engine data");
+assert.equal(statusBody.ready, true, "Hexagon must be configured with Anthropic and engine data");
+assert.equal(statusBody.provider, "anthropic", "Hexagon must use the configured Anthropic integration");
 assert.equal(statusBody.seats, 6, "Hexagon must expose six council seats");
 assert.deepEqual(
   statusBody.council?.map((seat) => seat.name),
@@ -51,7 +52,7 @@ const invalidReview = await request(`${apiBase}/v1/reviews`, {
   headers: { "content-type": "application/json", origin: canonicalOrigin },
   body: JSON.stringify({ csv: "symbol,entry_date\nSPY,2026-01-01" }),
 });
-assert.equal(invalidReview.response.status, 400, "Invalid CSV must fail before an OpenAI request");
+assert.equal(invalidReview.response.status, 400, "Invalid CSV must fail before a provider request");
 
 const page = await request(webUrl);
 assert.equal(page.response.status, 200, `Hexagon web page failed: ${page.body.slice(0, 200)}`);

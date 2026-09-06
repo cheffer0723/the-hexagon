@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
 import OrbitDiagram from "@/components/hexagon/OrbitDiagram";
@@ -26,7 +26,7 @@ const SEATS = [
   { id: "devils_advocate", name: "The Sentinel", role: "Defense", line: "Argues the case for you — constraints the other five can't see." },
 ] as const;
 
-function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => void; onOpenSandbox: () => void }) {
+function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: string; onReview: (file: File) => void; onOpenSandbox: () => void }) {
   const [file, setFile] = useState<File | null>(null);
 
   const chooseFile = (event: ChangeEvent<HTMLInputElement>) => {
@@ -81,11 +81,11 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           style={{ top: 42, right: "clamp(24px,8vw,128px)", color: "#85898c", fontFamily: MONO, fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.14em" }}
         >
           <span style={{ display: "inline-block", width: 7, height: 7, borderRadius: "50%", background: ACID, boxShadow: `0 0 14px ${ACID}`, marginRight: 8, animation: "hxPulse 1.8s infinite" }} />
-          {API_BASE_URL ? "COUNCIL ONLINE" : "SYSTEM IN FORMATION"}
+          {serviceState}
         </div>
 
         <div className="relative grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
-          <div className="order-2 lg:order-1">
+          <div className="order-1">
             <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
               Six perspectives. One forensic verdict.
             </p>
@@ -149,7 +149,7 @@ function UploadPanel({ onReview, onOpenSandbox }: { onReview: (file: File) => vo
           </div>
 
           <div
-            className="order-1 relative h-[340px] overflow-hidden border sm:h-[420px] lg:order-2 lg:h-[560px]"
+            className="order-2 relative h-[260px] overflow-hidden border sm:h-[420px] lg:h-[560px]"
             style={{
               borderColor: "#2a2c2f",
               backgroundColor: "#07090d",
@@ -268,6 +268,20 @@ export default function App() {
   const [isSandbox, setIsSandbox] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [serviceState, setServiceState] = useState("CHECKING SERVICE");
+  useEffect(() => {
+    let active = true;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    fetch(`${API_BASE_URL}/v1/status`, { signal: controller.signal })
+      .then(async (response) => {
+        const status = await response.json();
+        if (active) setServiceState(response.ok && status.ready ? "API CONFIGURED" : "REVIEWS UNAVAILABLE");
+      })
+      .catch(() => { if (active) setServiceState("SERVICE UNREACHABLE"); })
+      .finally(() => clearTimeout(timer));
+    return () => { active = false; controller.abort(); clearTimeout(timer); };
+  }, []);
 
   const runReview = async (file: File) => {
     if (!API_BASE_URL) {
@@ -287,14 +301,20 @@ export default function App() {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ csv }),
+        signal: AbortSignal.timeout(75_000),
       });
       const data = await res.json().catch(() => null);
-      if (!res.ok || !data?.review) throw new Error(data?.error || `HTTP ${res.status}`);
+      if (!res.ok || !data?.review) {
+        if (res.status >= 500) setServiceState("REVIEWS UNAVAILABLE");
+        throw new Error(data?.error || "The council could not complete the review. Please try again.");
+      }
+      setServiceState("LAST REVIEW COMPLETED");
       setReview(data.review as HexagonReview);
       setSandboxScenario(null);
       setIsSandbox(false);
     } catch (error) {
-      setNotice((error as Error).message || "The council could not review that file.");
+      if ((error as Error).name === "TimeoutError" || error instanceof TypeError) setServiceState("SERVICE UNREACHABLE");
+      setNotice((error as Error).name === "TimeoutError" ? "The review timed out. Please try again or explore the sandbox." : (error as Error).message || "The council could not review that file.");
     } finally {
       setLoading(false);
     }
@@ -321,21 +341,21 @@ export default function App() {
   if (!review) {
     return (
       <>
-        <UploadPanel onReview={runReview} onOpenSandbox={() => {
+        <UploadPanel serviceState={serviceState} onReview={runReview} onOpenSandbox={() => {
           const firstScenario = SANDBOX_SCENARIOS[0];
           setReview(firstScenario.review);
           setSandboxScenario(firstScenario);
           setIsSandbox(true);
           setNotice(null);
         }} />
-        {notice && <div className="fixed bottom-5 left-1/2 z-50 w-[min(92vw,620px)] -translate-x-1/2 border px-4 py-3 text-center text-xs" style={{ backgroundColor: "#160b10", borderColor: "#ff5d5d", color: "#ffb0b0" }}>{notice}</div>}
+        {notice && <div role="alert" className="fixed bottom-5 left-1/2 z-50 w-[min(92vw,620px)] -translate-x-1/2 border px-4 py-3 text-center text-sm" style={{ backgroundColor: "#160b10", borderColor: "#ff5d5d", color: "#ffb0b0" }}>{notice}</div>}
       </>
     );
   }
 
   return (
     <>
-      <div className="hidden md:block">
+      <div className="hidden xl:block">
         <Hexagon
           review={review}
           autoPlay={true}
@@ -346,7 +366,7 @@ export default function App() {
           onScenarioChange={(scenario) => { setSandboxScenario(scenario); setReview(scenario.review); }}
         />
       </div>
-      <div className="md:hidden">
+      <div className="xl:hidden">
         <MobileHexagon
           key={sandboxScenario?.id || "live-review"}
           review={review}

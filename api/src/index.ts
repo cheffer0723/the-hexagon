@@ -26,7 +26,8 @@ type Agent = { id: string; name: string; lens: string };
 const CSV_HEADERS = ["symbol", "entry_date", "exit_date", "entry_price", "exit_price", "size"] as const;
 const MAX_ROWS = 500;
 const MAX_BYTES = 1_000_000;
-const OPENAI_URL = "https://api.openai.com/v1/responses";
+const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
+const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 
 const ROLES: Agent[] = [
   { id: "risk_manager", name: "Aegis — Risk", lens: "position sizing, stop discipline, and whether the exit was a defined rule or a discretionary flinch" },
@@ -69,9 +70,10 @@ app.get("/v1/status", (_req, res) => {
     revision: process.env.RAILWAY_GIT_COMMIT_SHA?.slice(0, 7) || null,
     seats: ROLES.length,
     council: ROLES.map(({ id, name }) => ({ id, name })),
-    provider: "openai",
-    ready: Boolean(process.env.OPENAI_API_KEY && process.env.ENGINE_DATA_URL),
-    requires: ["OPENAI_API_KEY", "ENGINE_DATA_URL"],
+    provider: "anthropic",
+    model,
+    ready: Boolean(process.env.ANTHROPIC_API_KEY && process.env.ENGINE_DATA_URL),
+    requires: ["ANTHROPIC_API_KEY", "ENGINE_DATA_URL"],
   });
 });
 
@@ -208,7 +210,7 @@ function estimatedPath(trade: Trade, engine: EngineContext) {
 }
 
 async function buildReview(trade: Trade, allTrades: Trade[], engine: EngineContext) {
-  if (!process.env.OPENAI_API_KEY) throw serviceError("OPENAI_API_KEY is not configured.");
+  if (!process.env.ANTHROPIC_API_KEY) throw serviceError("The council is not configured. Please explore the sandbox while the service is being connected.");
   const path = estimatedPath(trade, engine);
   const userOutcome = round((trade.exitPrice - trade.entryPrice) * trade.size, 2);
   const councilOutcome = round((path.price - trade.entryPrice) * trade.size, 2);
@@ -241,48 +243,45 @@ async function buildReview(trade: Trade, allTrades: Trade[], engine: EngineConte
 }
 
 async function reviewSeat(role: Agent, context: string): Promise<{ id: string; name: string; verdict: Verdict; text: string }> {
-  const response = await fetch(OPENAI_URL, {
+  const response = await fetch(ANTHROPIC_URL, {
     method: "POST",
-    headers: { authorization: `Bearer ${process.env.OPENAI_API_KEY}`, "content-type": "application/json" },
+    signal: AbortSignal.timeout(60_000),
+    headers: { "x-api-key": process.env.ANTHROPIC_API_KEY || "", "anthropic-version": "2023-06-01", "content-type": "application/json" },
     body: JSON.stringify({
-      model: process.env.OPENAI_MODEL || "gpt-5-nano",
-      store: false,
-      instructions: `You are the ${role.name} seat of The Hexagon, a six-seat post-trade review council. Review through only this lens: ${role.lens}. Be clinical and concise. Never give investment advice or claim facts not supplied. Start with exactly one line: VERDICT: mistake or VERDICT: defensible. Follow it with one to three concise sentences of review text.`,
-      input: context,
-      text: { verbosity: "low" },
+      model,
+      max_tokens: 600,
+      system: `You are the ${role.name} seat of The Hexagon, a six-seat post-trade review council. Review through only this lens: ${role.lens}. Be clinical and concise. Never give investment advice or claim facts not supplied. Start with exactly one line: VERDICT: mistake or VERDICT: defensible. Follow it with one to three concise sentences of review text.`,
+      messages: [{ role: "user", content: context }],
     }),
   });
   if (!response.ok) {
     const upstream = await response.json().catch(() => null) as { error?: { code?: unknown; type?: unknown } } | null;
-    console.error("OpenAI Responses API rejected a council seat", {
+    console.error("Anthropic rejected a council seat", {
       status: response.status,
       code: typeof upstream?.error?.code === "string" ? upstream.error.code : null,
       type: typeof upstream?.error?.type === "string" ? upstream.error.type : null,
     });
-    throw serviceError("OpenAI could not complete the council review.");
+    throw serviceError(response.status === 429 ? "The council has reached its provider usage limit. Please try again later or explore the sandbox." : "The council provider is unavailable. Please try again later or explore the sandbox.");
   }
   const data = await response.json() as {
-    output_text?: unknown;
-    output?: Array<{ type?: unknown; content?: Array<{ type?: unknown; text?: unknown }> }>;
+    stop_reason?: string;
+    content?: Array<{ type?: unknown; text?: unknown }>;
   };
-  const outputText = typeof data.output_text === "string"
-    ? data.output_text
-    : (data.output || [])
-      .filter((item) => item.type === "message")
-      .flatMap((item) => item.content || [])
-      .filter((item) => item.type === "output_text" && typeof item.text === "string")
+  if (data.stop_reason === "max_tokens") throw serviceError("A council response was cut short. Please try again.");
+  const outputText = (data.content || [])
+      .filter((item) => item.type === "text" && typeof item.text === "string")
       .map((item) => item.text as string)
       .join("");
   const result = parseSeatResult(outputText);
   const verdict = typeof result.verdict === "string" ? result.verdict.toLowerCase() : "";
   if ((verdict !== "mistake" && verdict !== "defensible") || typeof result.text !== "string" || !result.text.trim()) {
-    console.error("OpenAI returned an incomplete council response", {
+    console.error("The provider returned an incomplete council response", {
       outputCharacters: outputText.length,
       verdictType: typeof result.verdict,
       textType: typeof result.text,
       textCharacters: typeof result.text === "string" ? result.text.length : null,
     });
-    throw serviceError("OpenAI returned an incomplete council response.");
+    throw serviceError("The provider returned an incomplete council response. Please try again.");
   }
   return { id: role.id, name: role.name, verdict: verdict as Verdict, text: result.text.trim() };
 }
@@ -310,8 +309,8 @@ function parseSeatResult(outputText: string): { verdict?: unknown; text?: unknow
     const text = trimmed.slice((verdictMatch.index || 0) + verdictMatch[0].length).trim();
     return { verdict: verdictMatch[1], text };
   }
-  console.error("OpenAI returned an unparsable council response", { outputCharacters: outputText.length });
-  throw serviceError("OpenAI returned an invalid council response.");
+  console.error("The provider returned an unparsable council response", { outputCharacters: outputText.length });
+  throw serviceError("The provider returned an invalid council response. Please try again.");
 }
 
 function addDays(date: string, days: number) { const value = new Date(`${date}T00:00:00Z`); value.setUTCDate(value.getUTCDate() + days); return value.toISOString().slice(0, 10); }
