@@ -45,8 +45,8 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
       >
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none" style={{ background: "linear-gradient(90deg, transparent 0%, rgba(45,212,191,.06) 48%, transparent 100%)" }} />
         <a href="#top" className="relative flex items-center gap-3" style={{ color: "#f1efe8", textDecoration: "none" }}>
-          <span className="flex items-center justify-center border" style={{ width: 54, height: 54, borderColor: "#356075", background: "#081018", boxShadow: "0 0 24px rgba(31,173,255,.18)", flexShrink: 0 }}>
-            <img src="/hexagon-flat-mark-transparent.png" alt="" style={{ width: "86%", height: "86%", objectFit: "contain", display: "block" }} />
+          <span className="flex items-center justify-center overflow-hidden border" style={{ width: 54, height: 54, borderColor: "#356075", background: "#081018", boxShadow: "0 0 24px rgba(31,173,255,.18)", flexShrink: 0 }}>
+            <img src="/hexagon-header-arc.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", mixBlendMode: "screen", transform: "scale(1.08)", display: "block" }} />
           </span>
           <span>
             <span className="block" style={{ letterSpacing: "0.18em", fontSize: "0.82rem", fontWeight: 900 }}>THE HEXAGON</span>
@@ -84,8 +84,8 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
           {serviceState}
         </div>
 
-        <div className="relative grid items-center gap-12 lg:grid-cols-[1.25fr_1fr]">
-          <div className="order-1">
+        <div className="relative">
+          <div>
             <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
               Six perspectives. One forensic verdict.
             </p>
@@ -148,27 +148,6 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
             </div>
           </div>
 
-          <div
-            className="order-2 relative h-[260px] overflow-hidden border sm:h-[420px] lg:h-[560px]"
-            style={{
-              borderColor: "#2a2c2f",
-              backgroundColor: "#07090d",
-              backgroundImage: "linear-gradient(180deg, rgba(5,7,12,.08), rgba(5,7,12,.38)), url('/hexagon-glass-mark.jpg')",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              backgroundSize: "cover",
-            }}
-            role="img"
-            aria-label="Blue glass hexagon mark"
-          >
-            <div
-              aria-hidden="true"
-              className="absolute inset-0"
-              style={{
-                background: "radial-gradient(ellipse at center, transparent 20%, rgba(5,7,12,.16) 72%, rgba(5,7,12,.58) 100%)",
-              }}
-            />
-          </div>
         </div>
       </section>
 
