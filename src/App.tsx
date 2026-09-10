@@ -231,20 +231,9 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
 
       <footer
         id="footer"
-        className="relative overflow-hidden"
+        className="relative"
         style={{ borderTop: "1px solid #25333a", padding: "54px clamp(24px,8vw,128px) 28px", background: "#050607" }}
       >
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: "linear-gradient(90deg, rgba(5,6,7,.98) 0%, rgba(5,6,7,.88) 52%, rgba(5,6,7,.66) 100%), url('/hexagon-footer-mark.jpg')",
-            backgroundPosition: "center, right 8% center",
-            backgroundRepeat: "no-repeat",
-            backgroundSize: "cover, 270px auto",
-            opacity: 0.92,
-          }}
-        />
         <div className="relative grid gap-10 md:grid-cols-[1.35fr_.7fr_.95fr] md:gap-8">
           <div>
             <a href="#top" className="flex items-center gap-3" style={{ color: "#f1efe8", textDecoration: "none" }}>
