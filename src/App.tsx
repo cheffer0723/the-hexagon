@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import Hexagon from "@/components/hexagon/Hexagon";
 import MobileHexagon from "@/components/hexagon/MobileHexagon";
 import OrbitDiagram from "@/components/hexagon/OrbitDiagram";
@@ -28,8 +28,31 @@ const SEATS = [
 
 function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: string; onReview: (file: File) => void; onOpenSandbox: () => void }) {
   const [file, setFile] = useState<File | null>(null);
+  const [showDisclosure, setShowDisclosure] = useState(false);
+  const [uploadAcknowledged, setUploadAcknowledged] = useState(false);
+  const [acknowledgements, setAcknowledgements] = useState([false, false, false]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const openUploadGate = () => {
+    if (uploadAcknowledged) {
+      fileInputRef.current?.click();
+      return;
+    }
+    setShowDisclosure(true);
+  };
+
+  const acceptDisclosure = () => {
+    setUploadAcknowledged(true);
+    setShowDisclosure(false);
+    requestAnimationFrame(() => fileInputRef.current?.click());
+  };
 
   const chooseFile = (event: ChangeEvent<HTMLInputElement>) => {
+    if (!uploadAcknowledged) {
+      event.target.value = "";
+      setShowDisclosure(true);
+      return;
+    }
     const next = event.target.files?.[0] || null;
     setFile(next);
     if (next) onReview(next);
@@ -105,18 +128,20 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
               <p style={{ color: ACID, fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>
                 Convene the council
               </p>
-              <label
-                className="mt-3 block cursor-pointer border border-dashed p-8 text-center transition-colors"
+              <input ref={fileInputRef} className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
+              <button
+                type="button"
+                onClick={openUploadGate}
+                className="mt-3 block w-full cursor-pointer border border-dashed p-8 text-center transition-colors"
                 style={{ borderColor: "#3a3c3f", backgroundColor: "#111315" }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACID; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#3a3c3f"; }}
               >
-                <input className="sr-only" type="file" accept=".csv,text/csv" onChange={chooseFile} />
                 <span className="block font-bold uppercase" style={{ color: ACID, fontFamily: MONO, fontSize: "0.78rem", letterSpacing: "0.12em" }}>
                   {file ? `Reviewing ${file.name}` : "Select completed-trades CSV"}
                 </span>
                 <span className="mt-3 block text-xs" style={{ color: "#85898c" }}>Maximum 500 rows / 1 MB</span>
-              </label>
+              </button>
 
               <button
                 type="button"
@@ -136,7 +161,7 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
                 </div>
                 <div>
                   <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Privacy & scope</p>
-                  <p className="mt-2 leading-5">Files are processed for the review only and are not stored by this service. This is educational analysis, not investment advice.</p>
+                  <p className="mt-2 leading-5">Your CSV is sent to the review service to generate analysis. Do not upload credentials, account numbers, or other sensitive personal data.</p>
                 </div>
               </div>
 
@@ -206,8 +231,8 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
 
       <footer
         id="footer"
-        className="relative flex flex-col items-start gap-7 overflow-hidden sm:flex-row sm:items-center sm:justify-between"
-        style={{ minHeight: 210, borderTop: "1px solid #25333a", padding: "50px clamp(24px,8vw,128px)", background: "#050607" }}
+        className="relative overflow-hidden"
+        style={{ borderTop: "1px solid #25333a", padding: "54px clamp(24px,8vw,128px) 28px", background: "#050607" }}
       >
         <div
           aria-hidden="true"
@@ -220,23 +245,69 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
             opacity: 0.92,
           }}
         />
-        <div className="relative flex items-center gap-4">
-          <span className="overflow-hidden border" style={{ width: 58, height: 58, borderColor: "#335b70", background: "#080b0f", flexShrink: 0 }}>
-            <img src="/hexagon-footer-mark.jpg" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 51%", display: "block" }} />
-          </span>
+        <div className="relative grid gap-10 md:grid-cols-[1.35fr_.7fr_.95fr] md:gap-8">
           <div>
-            <p style={{ letterSpacing: "-0.03em", color: ACID, margin: 0, fontSize: "clamp(1.8rem,4vw,3.3rem)", fontWeight: 900 }}>THE HEXAGON</p>
-            <small style={{ color: "#8c959a", fontFamily: MONO, fontWeight: 700, fontSize: "0.66rem", letterSpacing: "0.16em", marginTop: 8, display: "block" }}>
-              SYNTHETICSIX.COM · TRADE REVIEW COUNCIL
-            </small>
+            <a href="#top" className="flex items-center gap-3" style={{ color: "#f1efe8", textDecoration: "none" }}>
+              <span className="flex items-center justify-center overflow-hidden border" style={{ width: 46, height: 46, borderColor: "#356075", background: "#081018", flexShrink: 0 }}>
+                <img src="/hexagon-header-arc.png" alt="" style={{ width: "100%", height: "100%", objectFit: "cover", mixBlendMode: "screen", transform: "scale(1.08)", display: "block" }} />
+              </span>
+              <span>
+                <span className="block" style={{ letterSpacing: "0.15em", fontSize: "0.8rem", fontWeight: 900 }}>THE HEXAGON</span>
+                <span className="mt-1 block" style={{ color: ACID, fontFamily: MONO, letterSpacing: "0.14em", fontSize: "0.57rem", fontWeight: 700 }}>TRADE REVIEW COUNCIL</span>
+              </span>
+            </a>
+            <p className="mt-5 max-w-sm text-sm leading-6" style={{ color: "#929a9e" }}>A six-seat AI review room for examining completed trades with sharper questions and clearer context.</p>
+          </div>
+
+          <div>
+            <p style={{ color: "#d8dad6", fontFamily: MONO, fontSize: "0.64rem", fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase" }}>Explore</p>
+            <div className="mt-4 flex flex-col gap-3 text-sm">
+              <a href="#top" style={{ color: "#929a9e", textDecoration: "none" }}>Upload a review</a>
+              <a href="#council-title" style={{ color: "#929a9e", textDecoration: "none" }}>How the council works</a>
+              <button type="button" onClick={onOpenSandbox} className="w-fit text-left" style={{ color: "#929a9e", background: "transparent", border: 0, padding: 0, cursor: "pointer", fontSize: "0.875rem" }}>Explore the local sandbox</button>
+            </div>
+          </div>
+
+          <div>
+            <p style={{ color: "#d8dad6", fontFamily: MONO, fontSize: "0.64rem", fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase" }}>Data & disclosures</p>
+            <div className="mt-4 flex flex-col gap-3 text-sm">
+              <button type="button" onClick={() => setShowDisclosure(true)} className="w-fit text-left" style={{ color: "#929a9e", background: "transparent", border: 0, padding: 0, cursor: "pointer", fontSize: "0.875rem" }}>Review data acknowledgement</button>
+              <span style={{ color: "#929a9e" }}>Educational analysis only</span>
+              <span style={{ color: "#929a9e" }}>No investment, legal, or tax advice</span>
+            </div>
           </div>
         </div>
-        <span className="relative" style={{ fontFamily: MONO, fontWeight: 700, fontSize: "0.68rem", lineHeight: 1.6, letterSpacing: "0.14em", color: "#a1a8ab", textAlign: "right" }}>
-          BUILT FOR TRADERS WHO WANT THE TRUTH.
-          <br />
-          Educational analysis, not investment advice.
-        </span>
+        <div className="relative mt-12 flex flex-col gap-3 border-t pt-5 text-xs sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: "#202a2e", color: "#667176", fontFamily: MONO, letterSpacing: "0.08em" }}>
+          <span>© 2026 SYNTHETIC SIX. ALL RIGHTS RESERVED.</span>
+          <span>USE OF THIS BETA IS SUBJECT TO THE REVIEW DATA ACKNOWLEDGEMENT.</span>
+        </div>
       </footer>
+
+      {showDisclosure && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center p-4 sm:items-center" role="presentation" style={{ background: "rgba(2,4,7,.82)", backdropFilter: "blur(8px)" }}>
+          <section role="dialog" aria-modal="true" aria-labelledby="upload-disclosure-title" className="w-full max-w-2xl border p-6 sm:p-8" style={{ background: "#0b111a", borderColor: "#25465b", boxShadow: "0 20px 80px rgba(0,0,0,.55)" }}>
+            <p style={{ color: ACID, fontFamily: MONO, fontWeight: 800, fontSize: "0.66rem", letterSpacing: "0.16em", textTransform: "uppercase" }}>Before you upload</p>
+            <h2 id="upload-disclosure-title" className="mt-3 uppercase" style={{ color: "#f1efe8", fontWeight: 900, fontSize: "clamp(1.65rem,4vw,2.5rem)", lineHeight: .95, letterSpacing: "-0.04em" }}>Review data acknowledgement</h2>
+            <p className="mt-4 text-sm leading-6" style={{ color: "#a8b6c2" }}>The Hexagon is an early-stage trade review tool. Your CSV is sent to the AI review service to generate analysis. It is not a brokerage, custodian, or financial adviser.</p>
+            <div className="mt-6 grid gap-3">
+              {[
+                "I understand the output is educational and informational only, and is not investment, financial, legal, tax, or trading advice.",
+                "I will upload only completed-trade data that I am authorized to share. I will not include passwords, API keys, account or payment numbers, recovery phrases, or other sensitive personal information.",
+                "I understand this beta service may change, fail, or be unavailable, and that no trading result or outcome is guaranteed.",
+              ].map((label, index) => (
+                <label key={label} className="flex cursor-pointer gap-3 border p-4" style={{ borderColor: acknowledgements[index] ? "#2a7a79" : "#25333a", background: acknowledgements[index] ? "rgba(45,212,191,.07)" : "#0d151f" }}>
+                  <input type="checkbox" checked={acknowledgements[index]} onChange={(event) => setAcknowledgements((current) => current.map((value, currentIndex) => currentIndex === index ? event.target.checked : value))} style={{ accentColor: ACID, marginTop: 3 }} />
+                  <span className="text-sm leading-6" style={{ color: "#c1ccd4" }}>{label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button type="button" onClick={() => setShowDisclosure(false)} className="border px-5 py-3 text-xs font-bold uppercase tracking-[0.12em]" style={{ color: "#b5bec4", borderColor: "#31414a", background: "transparent", fontFamily: MONO }}>Cancel</button>
+              <button type="button" disabled={!acknowledgements.every(Boolean)} onClick={acceptDisclosure} className="px-5 py-3 text-xs font-bold uppercase tracking-[0.12em]" style={{ color: acknowledgements.every(Boolean) ? "#061010" : "#758187", background: acknowledgements.every(Boolean) ? ACID : "#253138", cursor: acknowledgements.every(Boolean) ? "pointer" : "not-allowed", fontFamily: MONO }}>Acknowledge & select CSV</button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
