@@ -53,8 +53,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Verify deployed Hexagon without an OpenAI charge
+      - name: Verify customer-facing Hexagon without an Anthropic charge
         env:
           HEXAGON_API_URL: ${{ vars.HEXAGON_API_BASE_URL }}
-          HEXAGON_WEB_URL: ${{ needs.deploy.outputs.page_url }}
+          HEXAGON_WEB_URL: https://syntheticsix.com/
+          HEXAGON_STRICT_BUNDLE_API: "1"
         run: npm run smoke
