@@ -6,6 +6,11 @@ The visitor uploads a completed-trades CSV; six independent Claude reviewer role
 on-screen and return a forensic verdict. The product is separate from Obsidian
 Abyss; it consumes configured engine data without exposing a Hexagon route there.
 
+The Hexagon has its own repository and Railway service, `hexagon-api`. It is
+not the neighbouring legacy `webapp-backend` service in the same Railway
+project. `ENGINE_DATA_URL` is a read-only engine-data dependency; it is not a
+shared product API or an Obsidian Abyss user-facing route.
+
 ## Run
 
 ```bash

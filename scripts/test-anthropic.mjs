@@ -5,6 +5,9 @@ process.env.PORT = '13987';
 process.env.ANTHROPIC_API_KEY = 'synthetic-test-key';
 process.env.ANTHROPIC_MODEL = 'claude-haiku-4-5-20251001';
 process.env.ENGINE_DATA_URL = 'https://engine.test/data';
+process.env.REVIEW_RATE_MAX = '5';
+process.env.REVIEW_GLOBAL_MAX = '100';
+process.env.REVIEW_MAX_CONCURRENT = '10';
 const originalFetch = globalThis.fetch;
 let mode = 'success';
 let calls = 0;
@@ -26,7 +29,7 @@ globalThis.fetch = async (url, options) => {
   }
   return originalFetch(url, options);
 };
-await import('../api/dist/index.cjs');
+const { server } = await import('../api/dist/index.cjs');
 const base = 'http://127.0.0.1:13987';
 const csv = 'symbol,entry_date,exit_date,entry_price,exit_price,size\nSPY,2026-08-03,2026-08-04,620,625,1';
 const review = (value = csv) => originalFetch(`${base}/v1/reviews`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ csv: value }) });
@@ -49,9 +52,14 @@ try {
     assert.equal(failure.ok, false);
     assert.ok(!JSON.stringify(failure).includes('synthetic-test-key'));
   }
-  console.log('PASS: six Anthropic seats, request format, CSV validation, authentication/quota errors, malformed/truncated output');
-  process.exit(0);
+  const callsBeforeRateLimit = calls;
+  const rateLimited = await review();
+  assert.equal(rateLimited.status, 429, 'sixth valid request must be limited before provider calls');
+  assert.equal(calls, callsBeforeRateLimit, 'rate-limited request must not call the provider');
+  console.log('PASS: six Anthropic seats, request format, CSV validation, provider errors, malformed/truncated output, beta rate limit');
 } catch (error) {
   console.error(error);
-  process.exit(1);
+  process.exitCode = 1;
+} finally {
+  server.close();
 }

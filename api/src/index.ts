@@ -28,6 +28,11 @@ const MAX_ROWS = 500;
 const MAX_BYTES = 1_000_000;
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const model = process.env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
+const REVIEW_WINDOW_MS = positiveInteger(process.env.REVIEW_RATE_WINDOW_MS, 60 * 60_000);
+const REVIEW_RATE_MAX = positiveInteger(process.env.REVIEW_RATE_MAX, 3);
+const REVIEW_GLOBAL_MAX = positiveInteger(process.env.REVIEW_GLOBAL_MAX, 30);
+const REVIEW_MAX_CONCURRENT = positiveInteger(process.env.REVIEW_MAX_CONCURRENT, 2);
+const MAX_TRACKED_REVIEW_CLIENTS = 10_000;
 
 const ROLES: Agent[] = [
   { id: "risk_manager", name: "Aegis — Risk", lens: "position sizing, stop discipline, and whether the exit was a defined rule or a discretionary flinch" },
@@ -53,6 +58,9 @@ const allowedCorsOrigins = new Set([
 
 const app = express();
 app.disable("x-powered-by");
+// Railway terminates the public request before this service. Trust exactly that
+// proxy hop so the per-client beta limit does not treat every visitor as Railway.
+app.set("trust proxy", 1);
 app.use(cors({
   origin(origin, callback) {
     callback(null, !origin || allowedCorsOrigins.has(origin));
@@ -81,10 +89,22 @@ app.post("/v1/reviews", async (req, res, next) => {
   try {
     const csv = typeof req.body?.csv === "string" ? req.body.csv : "";
     const trades = parseCsv(csv);
-    const selected = selectTrade(trades);
-    const engine = await getEngineContext(selected.symbol);
-    const review = await buildReview(selected, trades, engine);
-    res.json({ ok: true, review, scope: "Engine signals are a model input; this review is educational analysis, not investment advice." });
+    const reservation = reserveReview(req.ip || req.socket.remoteAddress || "unknown");
+    if (!reservation.ok) {
+      res
+        .status(429)
+        .set("Retry-After", String(reservation.retryAfterSeconds))
+        .json({ ok: false, error: reservation.message });
+      return;
+    }
+    try {
+      const selected = selectTrade(trades);
+      const engine = await getEngineContext(selected.symbol);
+      const review = await buildReview(selected, trades, engine);
+      res.json({ ok: true, review, scope: "Engine signals are a model input; this review is educational analysis, not investment advice." });
+    } finally {
+      reservation.release();
+    }
   } catch (error) {
     const known = error as Error & { statusCode?: number };
     if (known.statusCode) {
@@ -101,7 +121,7 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
 });
 
 const port = Number(process.env.PORT || 3000);
-app.listen(port, () => console.log(`hexagon-api listening on ${port}`));
+export const server = app.listen(port, () => console.log(`hexagon-api listening on ${port}`));
 
 function parseCsv(csv: string): Trade[] {
   if (!csv.trim()) throw userError("Choose a CSV file with at least one completed trade.");
@@ -162,6 +182,60 @@ function isDate(value: string): boolean {
 }
 
 let engineCache: { expiresAt: number; data: unknown } | null = null;
+type ReviewBucket = { count: number; resetAt: number };
+const reviewBuckets = new Map<string, ReviewBucket>();
+let globalReviewBucket: ReviewBucket | null = null;
+let activeReviews = 0;
+
+function reserveReview(client: string):
+  | { ok: true; release: () => void }
+  | { ok: false; message: string; retryAfterSeconds: number } {
+  const now = Date.now();
+  for (const [key, bucket] of reviewBuckets) {
+    if (bucket.resetAt <= now) reviewBuckets.delete(key);
+  }
+  if (activeReviews >= REVIEW_MAX_CONCURRENT) {
+    return { ok: false, message: "The council is handling other reviews. Please try again shortly.", retryAfterSeconds: 30 };
+  }
+  if (!globalReviewBucket || globalReviewBucket.resetAt <= now) {
+    globalReviewBucket = { count: 0, resetAt: now + REVIEW_WINDOW_MS };
+  }
+  if (globalReviewBucket.count >= REVIEW_GLOBAL_MAX) {
+    return rateLimitError("The beta review capacity has been reached. Please try again later.", globalReviewBucket.resetAt, now);
+  }
+  let bucket = reviewBuckets.get(client);
+  if (!bucket || bucket.resetAt <= now) {
+    if (reviewBuckets.size >= MAX_TRACKED_REVIEW_CLIENTS) {
+      return { ok: false, message: "The council is handling other reviews. Please try again shortly.", retryAfterSeconds: 30 };
+    }
+    bucket = { count: 0, resetAt: now + REVIEW_WINDOW_MS };
+    reviewBuckets.set(client, bucket);
+  }
+  if (bucket.count >= REVIEW_RATE_MAX) {
+    return rateLimitError("This beta review limit has been reached. Please try again later.", bucket.resetAt, now);
+  }
+  bucket.count += 1;
+  globalReviewBucket.count += 1;
+  activeReviews += 1;
+  let released = false;
+  return {
+    ok: true,
+    release() {
+      if (released) return;
+      released = true;
+      activeReviews = Math.max(0, activeReviews - 1);
+    },
+  };
+}
+
+function rateLimitError(message: string, resetAt: number, now: number) {
+  return { ok: false as const, message, retryAfterSeconds: Math.max(1, Math.ceil((resetAt - now) / 1_000)) };
+}
+
+function positiveInteger(value: string | undefined, fallback: number) {
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
 
 async function getEngineContext(symbol: string): Promise<EngineContext> {
   const source = process.env.ENGINE_DATA_URL;
