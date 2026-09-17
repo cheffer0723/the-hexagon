@@ -1,7 +1,8 @@
 import { StatusBar } from 'expo-status-bar';
-import { useRef, useState } from 'react';
+import { createElement, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Platform,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -32,28 +33,37 @@ export default function App() {
     <SafeAreaView style={styles.root}>
       <StatusBar style="light" />
       <View style={styles.frame}>
-        <WebView
-          ref={webViewRef}
-          source={{ uri: HEXAGON_URL }}
-          style={styles.webview}
-          originWhitelist={[HEXAGON_URL]}
-          allowsBackForwardNavigationGestures
-          javaScriptEnabled
-          domStorageEnabled
-          pullToRefreshEnabled
-          sharedCookiesEnabled
-          setSupportMultipleWindows={false}
-          onLoadStart={() => {
-            setLoading(true);
-            setFailed(false);
-          }}
-          onLoadEnd={() => setLoading(false)}
-          onError={() => {
-            setLoading(false);
-            setFailed(true);
-          }}
-          onShouldStartLoadWithRequest={handleNavigation}
-        />
+        {Platform.OS === 'web' ? (
+          createElement('iframe', {
+            src: HEXAGON_URL,
+            title: 'The Hexagon',
+            style: styles.iframe,
+            onLoad: () => setLoading(false),
+          })
+        ) : (
+          <WebView
+            ref={webViewRef}
+            source={{ uri: HEXAGON_URL }}
+            style={styles.webview}
+            originWhitelist={[HEXAGON_URL]}
+            allowsBackForwardNavigationGestures
+            javaScriptEnabled
+            domStorageEnabled
+            pullToRefreshEnabled
+            sharedCookiesEnabled
+            setSupportMultipleWindows={false}
+            onLoadStart={() => {
+              setLoading(true);
+              setFailed(false);
+            }}
+            onLoadEnd={() => setLoading(false)}
+            onError={() => {
+              setLoading(false);
+              setFailed(true);
+            }}
+            onShouldStartLoadWithRequest={handleNavigation}
+          />
+        )}
 
         {loading && !failed ? (
           <View style={styles.overlay}>
@@ -89,6 +99,14 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+    backgroundColor: '#050607',
+  },
+  iframe: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    borderWidth: 0,
+    borderColor: 'transparent',
     backgroundColor: '#050607',
   },
   overlay: {
