@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "The Hexagon",
+    "slug": "EXPO-MOBILE",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "thehexagon",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "bundleIdentifier": "com.syntheticsix.hexagon",
+      "supportsTablet": true,
+      "usesAppleSignIn": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.syntheticsix.hexagon",
+      "adaptiveIcon": {
+        "backgroundColor": "#050607",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4dc9a712-137b-42a9-abad-55b94e3ea0b9"
+      }
+    },
+    "owner": "critical-mass-lab"
+  }
+}
