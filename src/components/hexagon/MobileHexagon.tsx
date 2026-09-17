@@ -169,7 +169,7 @@ export default function MobileHexagon({
         )}
 
         <section className="mobile-hexagon__trade" aria-label="Trade summary">
-          <div><span>Trade</span><strong>{review.trade.symbol} · ×{review.trade.size}</strong></div>
+          <div><span>Trade</span><strong>{review.trade.symbol} · {review.trade.side ? `${review.trade.side} ` : ""}×{review.trade.size}</strong></div>
           <div><span>Entry → exit</span><strong>${review.trade.entryPrice.toFixed(2)} → ${review.trade.exitPrice.toFixed(2)}</strong></div>
           <div><span>Outcome</span><strong style={{ color: outcomeColor }}>{formatMoney(review.trade.pnl)}</strong></div>
         </section>

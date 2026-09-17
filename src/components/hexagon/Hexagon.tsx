@@ -969,7 +969,7 @@ export default function Hexagon({
           <div style={{ color: COLORS.border }}>·</div>
           <div className="flex flex-col items-center gap-0.5">
             <span className="text-[8px] uppercase tracking-widest">Size</span>
-            <span className="font-semibold" style={{ color: COLORS.ink }}>×{trade.size}</span>
+            <span className="font-semibold" style={{ color: COLORS.ink }}>{trade.side ? `${trade.side} ` : ""}×{trade.size}</span>
           </div>
           <div style={{ color: COLORS.border }}>·</div>
           <div className="flex flex-col items-center gap-0.5">
