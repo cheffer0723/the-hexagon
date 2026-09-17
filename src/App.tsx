@@ -10,7 +10,8 @@ const API_BASE_URL = (
   import.meta.env.VITE_HEXAGON_API_BASE_URL || "https://api.instance6.xyz"
 ).replace(/\/+$/, "");
 
-const CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";
+const HEXAGON_CSV_HEADERS = "symbol,entry_date,exit_date,entry_price,exit_price,size";
+const TRADE_EXPORT_CSV_HEADERS = "symbol,side,entry_timestamp_utc,exit_timestamp_utc,entry_price,exit_price,pnl_usd";
 
 const ACID = "#2dd4bf";
 const ACID2 = "#a78bfa";
@@ -156,8 +157,9 @@ function UploadPanel({ onReview, onOpenSandbox, serviceState }: { serviceState: 
 
               <div className="mt-7 grid gap-4 text-xs sm:grid-cols-2" style={{ color: "#85898c" }}>
                 <div>
-                  <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Required columns</p>
-                  <code className="mt-2 block break-all leading-5" style={{ fontFamily: MONO }}>{CSV_HEADERS}</code>
+                  <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Supported columns</p>
+                  <code className="mt-2 block break-all leading-5" style={{ fontFamily: MONO }}>{HEXAGON_CSV_HEADERS}</code>
+                  <code className="mt-2 block break-all leading-5" style={{ fontFamily: MONO }}>{TRADE_EXPORT_CSV_HEADERS}</code>
                 </div>
                 <div>
                   <p className="font-bold uppercase tracking-widest" style={{ color: "#d8dad6" }}>Privacy & scope</p>

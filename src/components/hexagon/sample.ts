@@ -11,6 +11,7 @@ export interface HexagonAgent {
 export interface HexagonReview {
   trade: {
     symbol: string;
+    side?: "LONG" | "SHORT";
     entryDate: string;
     exitDate: string;
     entryPrice: number;

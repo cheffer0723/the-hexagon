@@ -3,14 +3,17 @@ import express from "express";
 
 type Verdict = "mistake" | "defensible";
 type Signal = "IN" | "OUT" | "UNKNOWN";
+type Side = "LONG" | "SHORT";
 
 type Trade = {
   symbol: string;
+  side: Side;
   entryDate: string;
   exitDate: string;
   entryPrice: number;
   exitPrice: number;
   size: number;
+  realizedPnlUsd?: number;
 };
 
 type EngineSignal = { signal: Signal; confidence: number };
@@ -23,7 +26,8 @@ type EngineContext = {
 
 type Agent = { id: string; name: string; lens: string };
 
-const CSV_HEADERS = ["symbol", "entry_date", "exit_date", "entry_price", "exit_price", "size"] as const;
+const HEXAGON_CSV_HEADERS = ["symbol", "entry_date", "exit_date", "entry_price", "exit_price", "size"] as const;
+const TRADE_EXPORT_CSV_HEADERS = ["symbol", "side", "entry_timestamp_utc", "exit_timestamp_utc", "entry_price", "exit_price", "pnl_usd"] as const;
 const MAX_ROWS = 500;
 const MAX_BYTES = 1_000_000;
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
@@ -131,26 +135,93 @@ function parseCsv(csv: string): Trade[] {
   if (lines.length - 1 > MAX_ROWS) throw userError(`CSV is limited to ${MAX_ROWS} trades per review.`);
 
   const headers = splitCsv(lines[0]).map((value) => value.trim().toLowerCase());
-  if (headers.length !== CSV_HEADERS.length || headers.some((header, index) => header !== CSV_HEADERS[index])) {
-    throw userError(`CSV header must exactly match: ${CSV_HEADERS.join(",")}`);
+  const isHexagonFormat = matchesHeaders(headers, HEXAGON_CSV_HEADERS);
+  const isTradeExportFormat = matchesHeaders(headers, TRADE_EXPORT_CSV_HEADERS);
+  if (!isHexagonFormat && !isTradeExportFormat) {
+    throw userError(`CSV header must match either ${HEXAGON_CSV_HEADERS.join(",")} or ${TRADE_EXPORT_CSV_HEADERS.join(",")}`);
   }
 
   return lines.slice(1).map((line, index) => {
     const values = splitCsv(line);
-    if (values.length !== CSV_HEADERS.length) throw userError(`CSV line ${index + 2} must have exactly ${CSV_HEADERS.length} columns.`);
-    const [symbolRaw, entryDate, exitDate, entryPriceRaw, exitPriceRaw, sizeRaw] = values.map((value) => value.trim());
-    const symbol = symbolRaw.toUpperCase();
-    if (!/^[A-Z0-9.-]{1,16}$/.test(symbol)) throw userError(`CSV line ${index + 2} has an invalid symbol.`);
-    if (!isDate(entryDate) || !isDate(exitDate) || exitDate < entryDate) throw userError(`CSV line ${index + 2} has invalid trade dates.`);
-    return {
-      symbol,
-      entryDate,
-      exitDate,
-      entryPrice: positive(entryPriceRaw, "entry_price", index + 2),
-      exitPrice: positive(exitPriceRaw, "exit_price", index + 2),
-      size: positive(sizeRaw, "size", index + 2),
-    };
+    const lineNumber = index + 2;
+    if (isHexagonFormat) return parseHexagonTrade(values, lineNumber);
+    return parseTradeExport(values, lineNumber);
   });
+}
+
+function matchesHeaders(headers: string[], expected: readonly string[]): boolean {
+  return headers.length === expected.length && headers.every((header, index) => header === expected[index]);
+}
+
+function parseHexagonTrade(values: string[], lineNumber: number): Trade {
+  if (values.length !== HEXAGON_CSV_HEADERS.length) throw userError(`CSV line ${lineNumber} must have exactly ${HEXAGON_CSV_HEADERS.length} columns.`);
+  const [symbolRaw, entryDate, exitDate, entryPriceRaw, exitPriceRaw, sizeRaw] = values.map((value) => value.trim());
+  const symbol = parseSymbol(symbolRaw, lineNumber);
+  if (!isDate(entryDate) || !isDate(exitDate) || exitDate < entryDate) throw userError(`CSV line ${lineNumber} has invalid trade dates.`);
+  return {
+    symbol,
+    side: "LONG",
+    entryDate,
+    exitDate,
+    entryPrice: positive(entryPriceRaw, "entry_price", lineNumber),
+    exitPrice: positive(exitPriceRaw, "exit_price", lineNumber),
+    size: positive(sizeRaw, "size", lineNumber),
+  };
+}
+
+function parseTradeExport(values: string[], lineNumber: number): Trade {
+  if (values.length !== TRADE_EXPORT_CSV_HEADERS.length) throw userError(`CSV line ${lineNumber} must have exactly ${TRADE_EXPORT_CSV_HEADERS.length} columns.`);
+  const [symbolRaw, sideRaw, entryTimestampRaw, exitTimestampRaw, entryPriceRaw, exitPriceRaw, pnlUsdRaw] = values.map((value) => value.trim());
+  const symbol = parseSymbol(symbolRaw, lineNumber);
+  const side = parseSide(sideRaw, lineNumber);
+  const entryDate = parseTimestampDate(entryTimestampRaw, "entry_timestamp_utc", lineNumber);
+  const exitDate = parseTimestampDate(exitTimestampRaw, "exit_timestamp_utc", lineNumber);
+  if (Date.parse(exitTimestampRaw) < Date.parse(entryTimestampRaw)) throw userError(`CSV line ${lineNumber} has an exit timestamp before its entry timestamp.`);
+  const entryPrice = positive(entryPriceRaw, "entry_price", lineNumber);
+  const exitPrice = positive(exitPriceRaw, "exit_price", lineNumber);
+  const realizedPnlUsd = money(pnlUsdRaw, "pnl_usd", lineNumber);
+  const perUnitPnl = sideAwarePriceMove({ side, entryPrice, exitPrice });
+  if (perUnitPnl === 0) throw userError(`CSV line ${lineNumber} cannot infer size from a zero price move.`);
+  const size = round(Math.abs(realizedPnlUsd / perUnitPnl), 10);
+  if (!Number.isFinite(size) || size <= 0) throw userError(`CSV line ${lineNumber} could not infer a positive size from pnl_usd.`);
+  return { symbol, side, entryDate, exitDate, entryPrice, exitPrice, size, realizedPnlUsd };
+}
+
+function parseSymbol(value: string, lineNumber: number): string {
+  const symbol = value.toUpperCase();
+  if (!/^[A-Z0-9.-]{1,16}$/.test(symbol)) throw userError(`CSV line ${lineNumber} has an invalid symbol.`);
+  return symbol;
+}
+
+function parseSide(value: string, lineNumber: number): Side {
+  const side = value.toUpperCase();
+  if (side !== "LONG" && side !== "SHORT") throw userError(`CSV line ${lineNumber} side must be LONG or SHORT.`);
+  return side;
+}
+
+function parseTimestampDate(value: string, field: string, lineNumber: number): string {
+  const parsed = new Date(value);
+  if (!value || Number.isNaN(parsed.getTime())) throw userError(`CSV line ${lineNumber} ${field} must be a valid timestamp.`);
+  return parsed.toISOString().slice(0, 10);
+}
+
+function money(value: string, field: string, line: number): number {
+  const number = Number(value);
+  if (!Number.isFinite(number)) throw userError(`CSV line ${line} ${field} must be a number.`);
+  return number;
+}
+
+function sideAwarePriceMove(trade: Pick<Trade, "side" | "entryPrice" | "exitPrice">): number {
+  return trade.side === "SHORT" ? trade.entryPrice - trade.exitPrice : trade.exitPrice - trade.entryPrice;
+}
+
+function realizedPnl(trade: Trade): number {
+  return typeof trade.realizedPnlUsd === "number" ? trade.realizedPnlUsd : sideAwarePriceMove(trade) * trade.size;
+}
+
+function pnlPct(trade: Trade): number {
+  const move = sideAwarePriceMove(trade);
+  return (move / trade.entryPrice) * 100;
 }
 
 function splitCsv(line: string): string[] {
@@ -273,24 +344,26 @@ async function loadEngineData(source: string): Promise<unknown> {
 }
 
 function selectTrade(trades: Trade[]): Trade {
-  return [...trades].sort((a, b) => Math.abs((b.exitPrice - b.entryPrice) * b.size) - Math.abs((a.exitPrice - a.entryPrice) * a.size))[0];
+  return [...trades].sort((a, b) => Math.abs(realizedPnl(b)) - Math.abs(realizedPnl(a)))[0];
 }
 
 function estimatedPath(trade: Trade, engine: EngineContext) {
-  const pnl = (trade.exitPrice - trade.entryPrice) * trade.size;
+  const pnl = realizedPnl(trade);
   const inVotes = [engine.orthrus, engine.hydra, engine.sisyphus].filter((item) => item.signal === "IN").length;
-  if (pnl < 0 && inVotes >= 2) return { date: addDays(trade.exitDate, 7), price: round(trade.entryPrice * 1.023, 2) };
+  const outVotes = [engine.orthrus, engine.hydra, engine.sisyphus].filter((item) => item.signal === "OUT").length;
+  if (pnl < 0 && trade.side === "LONG" && inVotes >= 2) return { date: addDays(trade.exitDate, 7), price: round(trade.entryPrice * 1.023, 2) };
+  if (pnl < 0 && trade.side === "SHORT" && outVotes >= 2) return { date: addDays(trade.exitDate, 7), price: round(trade.entryPrice * 0.977, 2) };
   return { date: trade.exitDate, price: trade.exitPrice };
 }
 
 async function buildReview(trade: Trade, allTrades: Trade[], engine: EngineContext) {
   if (!process.env.ANTHROPIC_API_KEY) throw serviceError("The council is not configured. Please explore the sandbox while the service is being connected.");
   const path = estimatedPath(trade, engine);
-  const userOutcome = round((trade.exitPrice - trade.entryPrice) * trade.size, 2);
-  const councilOutcome = round((path.price - trade.entryPrice) * trade.size, 2);
+  const userOutcome = round(realizedPnl(trade), 2);
+  const councilOutcome = round((trade.side === "SHORT" ? trade.entryPrice - path.price : path.price - trade.entryPrice) * trade.size, 2);
   const cost = round(councilOutcome - userOutcome, 2);
   const context = [
-    `Trade: ${trade.symbol}; entry ${trade.entryDate} at ${trade.entryPrice}; exit ${trade.exitDate} at ${trade.exitPrice}; size ${trade.size}.`,
+    `Trade: ${trade.symbol}; side ${trade.side}; entry ${trade.entryDate} at ${trade.entryPrice}; exit ${trade.exitDate} at ${trade.exitPrice}; size ${trade.size}.`,
     `Realized result: ${userOutcome}. Estimated engine-aligned path: exit ${path.date} at ${path.price}; result ${councilOutcome}; gap ${cost}.`,
     `Signals: Orthrus ${engine.orthrus.signal} (${engine.orthrus.confidence}), Hydra ${engine.hydra.signal} (${engine.hydra.confidence}), Sisyphus ${engine.sisyphus.signal} (${engine.sisyphus.confidence}).`,
     "Do not invent market prices, news, ATR, account context, or performance history not in this record. State uncertainty where appropriate.",
@@ -300,7 +373,7 @@ async function buildReview(trade: Trade, allTrades: Trade[], engine: EngineConte
   const defensible = agents.length - mistakes;
   const pattern = cost > 0 ? "engine-aligned path indicates a potential early exit" : "engine-aligned path does not indicate a larger missed gain";
   return {
-    trade: { ...trade, pnl: userOutcome, pnlPct: round(((trade.exitPrice / trade.entryPrice) - 1) * 100, 1) },
+    trade: { ...trade, pnl: userOutcome, pnlPct: round(pnlPct(trade), 1) },
     agents,
     verdict: {
       decision: cost > 0 ? "HOLD" : "REVIEW",
@@ -312,7 +385,7 @@ async function buildReview(trade: Trade, allTrades: Trade[], engine: EngineConte
       heldToDate: path.date,
       summary: `Consensus ${mistakes}-${defensible}. The model-estimated engine-aligned path changed the outcome from $${userOutcome} to $${councilOutcome}.`,
     },
-    patternFlag: `${allTrades.length} uploaded trades; selected ${trade.symbol} for the largest model-estimated decision gap (${pattern}).`,
+    patternFlag: `${allTrades.length} uploaded trades; selected ${trade.symbol} for the largest realized outcome by absolute P/L (${pattern}).`,
   };
 }
 
